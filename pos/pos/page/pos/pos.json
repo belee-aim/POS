@@ -1,0 +1,19 @@
+{
+ "content": null,
+ "creation": "2025-06-17 10:28:01.020284",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2025-06-17 10:28:01.020284",
+ "modified_by": "Administrator",
+ "module": "Pos",
+ "name": "pos",
+ "owner": "Administrator",
+ "page_name": "pos",
+ "roles": [],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Point of sale"
+}
