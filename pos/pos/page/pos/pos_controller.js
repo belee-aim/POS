@@ -187,6 +187,7 @@ erpnext.PointOfSale.Controller = class {
 		this.prepare_menu();
 		this.prepare_fullscreen_btn();
 		this.make_new_invoice();
+		this.prepare_ebarimt();
 	}
 
 	prepare_dom() {
@@ -861,5 +862,10 @@ erpnext.PointOfSale.Controller = class {
 		} else {
 			this.payment.checkout();
 		}
+	}
+
+	prepare_ebarimt() {
+		this.ebarimtDialog = new ebarimt.Dialog({});
+		this.ebarimtDialog.openDialog();
 	}
 };
