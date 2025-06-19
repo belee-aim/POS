@@ -187,7 +187,14 @@ erpnext.PointOfSale.Controller = class {
 		this.prepare_menu();
 		this.prepare_fullscreen_btn();
 		this.make_new_invoice();
-		this.prepare_ebarimt();
+
+		// setTimeout(() => {
+		// 	frappe.db.get_doc("POS Invoice", "ACC-PSINV-2025-00029").then(pos_invoice => {
+		// 		this.toggle_components(false);
+		// 		this.order_summary.toggle_component(true);
+		// 		this.order_summary.load_summary_of(pos_invoice, true);
+		// 	})
+		// }, 3000);
 	}
 
 	prepare_dom() {
@@ -439,7 +446,23 @@ erpnext.PointOfSale.Controller = class {
 				},
 
 				submit_invoice: () => {
-					this.ebarimtDialog.openDialog();
+					const d = new ebarimt.Dialog({
+						events: {
+							get_frm: () => this.frm || {},
+							onInvoiceSubmitted: () => {
+								this.frm.savesubmit().then((r) => {
+									this.toggle_components(false);
+									this.order_summary.toggle_component(true);
+									this.order_summary.load_summary_of(this.frm.doc, true);
+									frappe.show_alert({
+										indicator: "green",
+										message: __("POS invoice {0} created succesfully", [r.doc.name]),
+									});
+								});
+							}
+						}
+					});
+					d.openDialog();
 				},
 			},
 		});
@@ -854,24 +877,5 @@ erpnext.PointOfSale.Controller = class {
 		} else {
 			this.payment.checkout();
 		}
-	}
-
-	prepare_ebarimt() {
-		this.ebarimtDialog = new ebarimt.Dialog({
-			events: {
-				get_frm: () => this.frm || {},
-				onInvoiceSubmitted: () => {
-					this.frm.savesubmit().then((r) => {
-						this.toggle_components(false);
-						this.order_summary.toggle_component(true);
-						this.order_summary.load_summary_of(this.frm.doc, true);
-						frappe.show_alert({
-							indicator: "green",
-							message: __("POS invoice {0} created succesfully", [r.doc.name]),
-						});
-					});
-				}
-			}
-		});
 	}
 };

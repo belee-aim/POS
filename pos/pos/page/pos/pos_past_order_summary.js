@@ -29,6 +29,8 @@ erpnext.PointOfSale.PastOrderSummary = class {
 						<div class="totals-container summary-container"></div>
 						<div class="label">${__("Payments")}</div>
 						<div class="payments-container summary-container"></div>
+						<div class="label">${__("Ebarimt")}</div>
+						<div class="ebarimt-container summary-container"></div>
 						<div class="summary-btns"></div>
 					</div>
 				</div>
@@ -42,6 +44,7 @@ erpnext.PointOfSale.PastOrderSummary = class {
 		this.$items_container = this.$summary_container.find(".items-container");
 		this.$totals_container = this.$summary_container.find(".totals-container");
 		this.$payment_container = this.$summary_container.find(".payments-container");
+		this.$ebarimt_container = this.$summary_container.find(".ebarimt-container");
 		this.$summary_btns = this.$summary_container.find(".summary-btns");
 	}
 
@@ -353,6 +356,8 @@ erpnext.PointOfSale.PastOrderSummary = class {
 
 		this.attach_payments_info(doc);
 
+		this.attach_ebarimt_info(doc);
+
 		const condition_btns_map = this.get_condition_btn_map(after_submission);
 
 		this.add_summary_btns(condition_btns_map);
@@ -425,5 +430,57 @@ erpnext.PointOfSale.PastOrderSummary = class {
 
 	toggle_component(show) {
 		show ? this.$component.css("display", "flex") : this.$component.css("display", "none");
+	}
+
+	attach_ebarimt_info(doc) {
+		frappe.db.get_doc("Ebarimt Receipt", doc.custom_ebarimt_receipt).then(ebarimt_receipt => {
+			const ebarimt_data = JSON.parse(ebarimt_receipt.data);
+			console.log(ebarimt_data);
+
+			this.$ebarimt_container.html('');
+
+			this.$ebarimt_container.append(`<div id="ebarimt-data"></div>`);
+			this.$ebarimt_container.append(`<div id="ebarimt-qr"></div>`);
+
+			this.$ebarimt_container.css({
+				"display": "flex",
+				"flex-direction": "row",
+				"justify-content": "space-around",
+				"padding": "inherit",
+			});
+
+			const ebarimt_data_container = $("#ebarimt-data");
+			ebarimt_data_container.css({
+				"display": "flex",
+				"flex-direction": "column",
+			});
+
+			ebarimt_data_container.append(`<div>ДДТД: ${ebarimt_data.id}</div>`);
+			switch(ebarimt_data.type) {
+				case "B2C_RECEIPT": {
+					ebarimt_data_container.append(`<div>Сугалааны дугаар: ${ebarimt_data.lottery}</div>`);
+					break;
+				}
+				case "B2B_RECEIPT": {
+					ebarimt_data_container.append(`<div class="customerName"></div>`);
+					fetch(`https://api.ebarimt.mn/api/info/check/getInfo?tin=${ebarimt_data.customerTin}`).then(resp => {
+						resp.json().then(customerData => {
+							this.$ebarimt_container.find('.customerName').html(`Байгууллага: ${customerData.data.name}`);
+						})
+					})
+					break;
+				}
+			}
+			ebarimt_data_container.append(`<div>Бүртгүүлэх дүн: ${ebarimt_data.totalAmount}</div>`);
+
+			new QRCode("ebarimt-qr", {
+				text: ebarimt_data.qrData,
+				width: 128,
+				height: 128,
+				colorDark : "#000000",
+				colorLight : "#ffffff",
+				correctLevel : QRCode.CorrectLevel.M
+			});
+		});
 	}
 };

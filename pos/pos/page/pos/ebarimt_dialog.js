@@ -79,8 +79,6 @@ ebarimt.Dialog = class {
             primary_action_label: 'Баримт гаргах',
             primary_action: (values) => {
                 const frm = events.get_frm();
-                console.log(values);
-                console.log(frm.doc);
                 
                 frappe.call({
                     method: 'pos.api.ebarimt.submit_receipt',
@@ -88,8 +86,11 @@ ebarimt.Dialog = class {
                         receiptParams: values, 
                         invoiceDoc: frm.doc,
                     },
-                    callback: (resp) => {
-                        console.log(resp);
+                    callback: ({message}) => {
+                        frm.set_value("custom_ebarimt_receipt", message.name);
+                        frm.refresh();
+                        events.onInvoiceSubmitted();
+                        dialog.hide();
                     },
                     error: () => {
                         console.log('error');
