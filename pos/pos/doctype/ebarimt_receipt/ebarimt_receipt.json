@@ -6,54 +6,20 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "merchant_info",
-  "total_amount",
-  "type",
-  "items",
-  "payments"
+  "data"
  ],
  "fields": [
   {
-   "fieldname": "merchant_info",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Merchant Info",
-   "options": "Ebarimt Merchant Info",
-   "reqd": 1
-  },
-  {
-   "fieldname": "total_amount",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "\u0411\u0430\u0433\u0446 \u0431\u0430\u0440\u0438\u043c\u0442\u044b\u043d \u043d\u0438\u0439\u0442 \u04af\u043d\u0438\u0439\u043d \u0434\u04af\u043d",
-   "reqd": 1
-  },
-  {
-   "fieldname": "type",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "\u0411\u0430\u0440\u0438\u043c\u0442\u044b\u043d \u0442\u04e9\u0440\u04e9\u043b",
-   "options": "B2C_RECEIPT\nB2B_RECEIPT\nB2C_INVOICE\nB2B_INVOICE",
-   "reqd": 1
-  },
-  {
-   "fieldname": "items",
+   "fieldname": "data",
    "fieldtype": "JSON",
-   "label": "\u0411\u043e\u0440\u043b\u0443\u0443\u043b\u0441\u0430\u043d \u0431\u04af\u0442\u044d\u044d\u0433\u0434\u044d\u0445\u04af\u04af\u043d, \u04af\u0439\u043b\u0447\u0438\u043b\u0433\u044d\u044d\u043d\u0438\u0439 \u0436\u0430\u0433\u0441\u0430\u0430\u043b\u0442",
-   "read_only": 1
-  },
-  {
-   "fieldname": "payments",
-   "fieldtype": "JSON",
-   "label": "\u0422\u04e9\u043b\u0431\u04e9\u0440\u0438\u0439\u043d \u0445\u044d\u043b\u0431\u044d\u0440",
-   "read_only": 1
+   "label": "data"
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-18 10:52:46.721784",
+ "modified": "2025-06-18 15:00:38.750832",
  "modified_by": "Administrator",
  "module": "Pos",
  "name": "Ebarimt Receipt",

@@ -14,10 +14,6 @@ class EbarimtReceipt(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		items: DF.JSON | None
-		merchant_info: DF.Link
-		payments: DF.JSON | None
-		total_amount: DF.Float
-		type: DF.Literal["B2C_RECEIPT", "B2B_RECEIPT", "B2C_INVOICE", "B2B_INVOICE"]
+		data: DF.JSON | None
 	# end: auto-generated types
 	pass

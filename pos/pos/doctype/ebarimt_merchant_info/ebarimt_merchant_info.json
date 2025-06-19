@@ -8,7 +8,8 @@
  "field_order": [
   "merchant_tin",
   "pos_no",
-  "branch_no"
+  "branch_no",
+  "district_code"
  ],
  "fields": [
   {
@@ -31,12 +32,19 @@
    "in_list_view": 1,
    "label": "\u0411\u0430\u0433\u0446 \u0431\u0430\u0440\u0438\u043c\u0442 \u043e\u043b\u0433\u043e\u0433\u0447\u0438\u0439\u043d \u0422\u0422\u0414 (merchantTIN)",
    "reqd": 1
+  },
+  {
+   "fieldname": "district_code",
+   "fieldtype": "Data",
+   "label": "\u0411\u0430\u0440\u0438\u043c\u0442 \u0445\u044d\u0432\u043b\u044d\u0441\u044d\u043d \u043e\u0440\u043e\u043d \u043d\u0443\u0442\u0433\u0438\u0439\u043d \u043a\u043e\u0434 /\u0411\u0430\u0439\u0440\u0448\u043b\u044b\u043d \u043a\u043e\u0434 4 \u043e\u0440\u043e\u043d\u0442\u043e\u0439 \u0431\u04af\u0445\u044d\u043b \u0442\u043e\u043e/",
+   "length": 4,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-18 10:15:38.381354",
+ "modified": "2025-06-19 11:41:49.725983",
  "modified_by": "Administrator",
  "module": "Pos",
  "name": "Ebarimt Merchant Info",

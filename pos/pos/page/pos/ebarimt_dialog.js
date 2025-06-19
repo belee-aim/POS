@@ -8,16 +8,25 @@ ebarimt.Dialog = class {
                     label: 'Төрөл',
                     fieldname: 'type',
                     fieldtype: 'Select',
-                    options: ['Хувь хүн', 'Байгууллага'],
+                    options: [
+                        {value: 'B2C_RECEIPT', label: 'Хувь хүн'},
+                        {value: 'B2B_RECEIPT', label: 'Байгууллага'},
+                    ],
+                    default: 'B2C_RECEIPT',
                     change: () => {
                         console.log(dialog);
                         let type = dialog.get_value('type');
-                        if(type === 'Хувь хүн') {
+                        if(type === 'B2C_RECEIPT') {
                             dialog.get_field('companyReg').df.hidden = 1;
                             dialog.get_field('companyName').df.hidden = 1;
+                            dialog.get_primary_btn().prop('disabled', false);
                         } else {
+                            dialog.set_value('companyReg', '');
+                            dialog.set_value('companyName', '');
+
                             dialog.get_field('companyReg').df.hidden = 0;
                             dialog.get_field('companyName').df.hidden = 0;
+                            dialog.get_primary_btn().prop('disabled', true);
                         }
 
                         dialog.refresh();
@@ -28,24 +37,32 @@ ebarimt.Dialog = class {
                     fieldname: 'companyReg',
                     fieldtype: 'Data',
                     change: async () => {
+                        dialog.get_field("companyName").$input.prop('readonly', true);
+
                         let companyReg = dialog.get_value('companyReg');
+                        if(!companyReg) {
+                            return
+                        }
 
                         frappe.call({
-                            method: 'pos.api.ebarimt.ebarimt_get_merchant_info',
+                            method: 'pos.api.ebarimt.get_merchant_info',
                             args: {
                                 regNo: companyReg,
                             },
                             callback: ({message}) => {
-                                console.log(message);
                                 if(message.found) {
                                     dialog.set_value('companyName', message.name);
+                                    dialog.get_primary_btn().prop('disabled', false);
+
                                 } else {
                                     dialog.set_value('companyName', 'Компани олдсонгүй');
+                                    dialog.get_primary_btn().prop('disabled', true);
                                 }
                                 dialog.refresh();
                             },
                             error: (err) => {
                                 dialog.set_value('companyName', 'Алдаа гарлаа');
+                                dialog.get_primary_btn().prop('disabled', true);
                                 dialog.refresh();
                             }
                         });
@@ -56,14 +73,31 @@ ebarimt.Dialog = class {
                     label: 'Компаний нэр',
                     fieldname: 'companyName',
                     fieldtype: 'Data',
-                    change: () => {
-                        console.log(dialog.values);
-                    },
                     hidden: 1,
-                    disabled: 1,
                 }
-            ]
+            ],
+            primary_action_label: 'Баримт гаргах',
+            primary_action: (values) => {
+                const frm = events.get_frm();
+                console.log(values);
+                console.log(frm.doc);
+                
+                frappe.call({
+                    method: 'pos.api.ebarimt.submit_receipt',
+                    args: {
+                        receiptParams: values, 
+                        invoiceDoc: frm.doc,
+                    },
+                    callback: (resp) => {
+                        console.log(resp);
+                    },
+                    error: () => {
+                        console.log('error');
+                    }
+                });
+            },
         });
+
         this.dialog = dialog;
     }
 
