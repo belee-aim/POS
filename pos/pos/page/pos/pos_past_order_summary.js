@@ -29,7 +29,7 @@ erpnext.PointOfSale.PastOrderSummary = class {
 						<div class="totals-container summary-container"></div>
 						<div class="label">${__("Payments")}</div>
 						<div class="payments-container summary-container"></div>
-						<div class="label">${__("Ebarimt")}</div>
+						<div class="label ebarimt-label">${__("Ebarimt")}</div>
 						<div class="ebarimt-container summary-container"></div>
 						<div class="summary-btns"></div>
 					</div>
@@ -433,6 +433,15 @@ erpnext.PointOfSale.PastOrderSummary = class {
 	}
 
 	attach_ebarimt_info(doc) {
+		if(!doc.custom_ebarimt_receipt) {
+			this.wrapper.find('.ebarimt-label').css({
+				"display": "none",
+			});
+			this.$ebarimt_container.html('');
+
+			return;
+		}
+
 		frappe.db.get_doc("Ebarimt Receipt", doc.custom_ebarimt_receipt).then(ebarimt_receipt => {
 			const ebarimt_data = JSON.parse(ebarimt_receipt.data);
 			console.log(ebarimt_data);

@@ -2,6 +2,9 @@ import frappe
 import requests
 from datetime import date
 import json
+import qrcode
+import base64
+import io
 
 from pos.pos.doctype.ebarimt_settings.ebarimt_settings import EbarimtSettings
 from pos.pos.doctype.ebarimt_merchant_info.ebarimt_merchant_info import EbarimtMerchantInfo
@@ -30,22 +33,18 @@ def get_customerTin(regNo: str):
 
 @frappe.whitelist()
 def submit_receipt(receiptParams, invoiceDoc):
-    baseUrl = frappe.db.get_single_value("Ebarimt Settings", "base_url")
-
-    # merchant: EbarimtMerchantInfo = frappe.get_last_doc("Ebarimt Merchant Info", "Test Merchant")
-    merchant: EbarimtMerchantInfo = frappe.get_last_doc("Ebarimt Merchant Info")
-    
     receiptParams = json.loads(receiptParams)
     invoiceDoc = json.loads(invoiceDoc)
-
-    print(receiptParams)
-    print(receiptParams["type"])
     
-    print(merchant)
-    print(merchant.name)
-    print(merchant.merchant_tin)
-    print(merchant.pos_no)
-    print(merchant.branch_no)
+    baseUrl = frappe.db.get_single_value("Ebarimt Settings", "base_url")
+
+    merchant: EbarimtMerchantInfo = None
+    try:
+        merchant_name = frappe.db.get_value("POS Profile", invoiceDoc["pos_profile"], "custom_ebarimt_merchant_info")
+        merchant = frappe.get_doc("Ebarimt Merchant Info", merchant_name)
+    except Exception as err:
+        frappe.throw('Merchant info not found')
+        return None
 
     body = {
         "branchNo": merchant.branch_no,
@@ -100,3 +99,34 @@ def submit_receipt(receiptParams, invoiceDoc):
     doc.insert()
 
     return doc
+
+def get_customerInfo(customerTin: str):
+    resp = requests.get('https://api.ebarimt.mn/api/info/check/getInfo', {'tin': customerTin})
+
+    data = resp.json()
+    if(resp.status_code != 200 or data["status"] != 200):
+        raise(Exception("Error get_customerInfo"))
+        # frappe.throw('Error while fetching metchant info')
+
+    return data["data"]
+
+def generate_qrcode_data_url(qrData):
+    img = qrcode.make(qrData, border=0)
+    buffer = io.BytesIO()
+    img.save(buffer)
+    img_str = base64.b64encode(buffer.getvalue()).decode()
+    buffer.seek(0)
+    buffer.truncate(0)
+    return "data:image/png;base64, " + img_str
+
+@frappe.whitelist()
+def print_format_data(receiptName):
+    receipt_data = json.loads(frappe.db.get_value("Ebarimt Receipt", receiptName, "data"))
+    # receipt_data
+
+    if(receipt_data["type"] == "B2B_RECEIPT"):
+        customerInfo = get_customerInfo(receipt_data["customerTin"])
+        receipt_data["customerName"] = customerInfo["name"]
+    receipt_data["qrImage"] = generate_qrcode_data_url(receipt_data["qrData"])
+
+    return receipt_data

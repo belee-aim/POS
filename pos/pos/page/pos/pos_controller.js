@@ -450,7 +450,7 @@ erpnext.PointOfSale.Controller = class {
 						events: {
 							get_frm: () => this.frm || {},
 							onInvoiceSubmitted: () => {
-								this.frm.savesubmit().then((r) => {
+								this.frm.save("Submit").then((r) => {
 									this.toggle_components(false);
 									this.order_summary.toggle_component(true);
 									this.order_summary.load_summary_of(this.frm.doc, true);
