@@ -66,7 +66,7 @@ def submit_receipt(receiptParams, invoiceDoc):
                 "items": [
                     {
                         "name": item["item_name"],
-                        "barCode": item["barcode"],
+                        "barCode": item["barcode"] if ("barcode" in item and item["barcode"] != None) else "0123456789012",
                         "barCodeType": "GS1",
                         "classificationCode": "3212911",
                         "measureUnit": item["uom"],
