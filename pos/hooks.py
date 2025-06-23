@@ -8,18 +8,19 @@ app_license = "mit"
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = [
+    "erpnext"
+]
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "pos",
-# 		"logo": "/assets/pos/logo.png",
-# 		"title": "Pos",
-# 		"route": "/pos",
-# 		"has_permission": "pos.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "POS",
+		"logo": "/assets/pos/images/point-of-sale.png",
+		"title": "POS",
+		"route": "app/pos",
+	}
+]
 
 # Includes in <head>
 # ------------------
