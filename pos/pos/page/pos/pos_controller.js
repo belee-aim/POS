@@ -445,24 +445,31 @@ erpnext.PointOfSale.Controller = class {
 					}
 				},
 
-				submit_invoice: () => {
-					const d = new ebarimt.Dialog({
-						events: {
-							get_frm: () => this.frm || {},
-							onInvoiceSubmitted: () => {
-								this.frm.save("Submit").then((r) => {
-									this.toggle_components(false);
-									this.order_summary.toggle_component(true);
-									this.order_summary.load_summary_of(this.frm.doc, true);
-									frappe.show_alert({
-										indicator: "green",
-										message: __("POS invoice {0} created succesfully", [r.doc.name]),
-									});
-								});
+				submit_invoice: async () => {
+					const onInvoiceSaved = (r) => {
+						this.toggle_components(false);
+						this.order_summary.toggle_component(true);
+						this.order_summary.load_summary_of(this.frm.doc, true);
+						frappe.show_alert({
+							indicator: "green",
+							message: __("POS invoice {0} created succesfully", [r.doc.name]),
+						});
+					}
+
+					const {custom_ebarimt_merchant_info} = (await frappe.db.get_value("POS Profile", this.pos_profile, "custom_ebarimt_merchant_info")).message;
+					if(custom_ebarimt_merchant_info) {
+						const d = new ebarimt.Dialog({
+							events: {
+								get_frm: () => this.frm || {},
+								onInvoiceSubmitted: () => {
+									this.frm.save("Submit").then(r => onInvoiceSaved(r));
+								},
 							}
-						}
-					});
-					d.openDialog();
+						});
+						d.openDialog();
+					} else {
+						this.frm.savesubmit().then(r => onInvoiceSaved(r));
+					}
 				},
 			},
 		});
