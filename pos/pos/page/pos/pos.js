@@ -2,6 +2,9 @@ frappe.provide("erpnext.PointOfSale");
 frappe.provide('ebarimt');
 
 frappe.pages["pos"].on_page_load = function (wrapper) {
+	const stickyTop = document.getElementsByClassName('sticky-top');
+	$(stickyTop).find('header>div').css("display", "none");
+	
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("POS"),
