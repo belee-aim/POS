@@ -1,4 +1,4 @@
-.point-of-sale-app {
+.pos-app {
 	display: grid;
 	grid-template-columns: repeat(10, minmax(0, 1fr));
 	gap: var(--margin-md);
@@ -1148,7 +1148,7 @@
 }
 
 @media screen and (max-width: 620px) {
-	.point-of-sale-app {
+	.pos-app {
 		grid-template-columns: repeat(1, minmax(0, 1fr));
 
 		> .items-selector {

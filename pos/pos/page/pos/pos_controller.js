@@ -198,9 +198,9 @@ erpnext.PointOfSale.Controller = class {
 	}
 
 	prepare_dom() {
-		this.wrapper.append(`<div class="point-of-sale-app"></div>`);
+		this.wrapper.append(`<div class="pos-app"></div>`);
 
-		this.$components_wrapper = this.wrapper.find(".point-of-sale-app");
+		this.$components_wrapper = this.wrapper.find(".pos-app");
 	}
 
 	prepare_components() {

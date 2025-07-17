@@ -26,7 +26,7 @@ add_to_apps_screen = [
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/pos/css/pos.css"
+app_include_css = "pos.bundle.css"
 app_include_js = "/assets/pos/js/qrcode.min.js"
 
 # include js, css files in header of web template
