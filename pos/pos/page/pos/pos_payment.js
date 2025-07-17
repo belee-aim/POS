@@ -18,11 +18,19 @@ erpnext.PointOfSale.Payment = class {
 		this.wrapper.append(
 			`<section class="payment-container">
 				<div class="section-label payment-section">${__("Payment Method")}</div>
-				<div class="payment-modes"></div>
+				<div class="payment-modes-section">
+					<div class="payment-modes"></div>
+					<div class="payment-mode-detail">
+						<p>Details</p>
+					</div>
+				</div>
+				<div class="seperator"></div>
 				<div class="fields-numpad-container">
 					<div class="fields-section">
-						<div class="section-label">${__("Additional Information")}</div>
-						<div class="invoice-fields"></div>
+						<div class="payments-section">
+							<h3>${__("Payments")}</h3>
+							<div class="payment-list"></div>
+						</div>
 					</div>
 					<div class="number-pad"></div>
 				</div>
@@ -37,51 +45,24 @@ erpnext.PointOfSale.Payment = class {
 		this.$totals_section = this.$component.find(".totals-section");
 		this.$totals = this.$component.find(".totals");
 		this.$numpad = this.$component.find(".number-pad");
-		this.$invoice_fields_section = this.$component.find(".fields-section");
+		this.$payment_list = this.$component.find(".payment-list");
 	}
 
-	make_invoice_fields_control() {
+	render_payment_list() {
 		this.reqd_invoice_fields = [];
-		frappe.db.get_doc("POS Settings", undefined).then((doc) => {
-			const fields = doc.invoice_fields;
-			if (!fields.length) return;
-
-			this.$invoice_fields = this.$invoice_fields_section.find(".invoice-fields");
-			this.$invoice_fields.html("");
-			const frm = this.events.get_frm();
-
-			fields.forEach((df) => {
-				this.$invoice_fields.append(
-					`<div class="invoice_detail_field ${df.fieldname}-field" data-fieldname="${df.fieldname}"></div>`
-				);
-				let df_events = {
-					onchange: function () {
-						frm.set_value(this.df.fieldname, this.get_value());
-					},
-				};
-				if (df.fieldtype == "Button") {
-					df_events = {
-						click: function () {
-							if (frm.script_manager.has_handlers(df.fieldname, frm.doc.doctype)) {
-								frm.script_manager.trigger(df.fieldname, frm.doc.doctype, frm.doc.docname);
-							}
-						},
-					};
-				}
-				if (df.reqd && (df.fieldtype !== "Button" || !df.read_only)) {
-					this.reqd_invoice_fields.push({ fieldname: df.fieldname, label: df.label });
-				}
-
-				this[`${df.fieldname}_field`] = frappe.ui.form.make_control({
-					df: {
-						...df,
-						...df_events,
-					},
-					parent: this.$invoice_fields.find(`.${df.fieldname}-field`),
-					render_input: true,
-				});
-				this[`${df.fieldname}_field`].set_value(frm.doc[df.fieldname]);
-			});
+		
+		const doc = this.events.get_frm().doc;
+		const payments = doc.payments;
+		const currency = doc.currency;
+		
+		this.$payment_list.empty();
+		payments.forEach(p => {
+			if(p.amount > 0) {
+				const amount = p.amount > 0 ? format_currency(p.amount, currency) : "";
+				this.$payment_list.append(`
+					<div>${p.mode_of_payment}: ${amount}</div>
+				`);
+			}
 		});
 	}
 
@@ -228,11 +209,12 @@ erpnext.PointOfSale.Payment = class {
 			this.update_totals_section(frm.doc);
 
 			// need to re calculate cash shortcuts after discount is applied
-			const is_cash_shortcuts_invisible = !this.$payment_modes.find(".cash-shortcuts").is(":visible");
-			this.attach_cash_shortcuts(frm.doc);
-			!is_cash_shortcuts_invisible &&
-				this.$payment_modes.find(".cash-shortcuts").css("display", "grid");
+			// const is_cash_shortcuts_invisible = !this.$payment_modes.find(".cash-shortcuts").is(":visible");
+			// this.attach_cash_shortcuts(frm.doc);
+			// !is_cash_shortcuts_invisible &&
+			// 	this.$payment_modes.find(".cash-shortcuts").css("display", "grid");
 			this.render_payment_mode_dom();
+			this.render_payment_list();
 		});
 
 		frappe.ui.form.on("POS Invoice", "loyalty_amount", (frm) => {
@@ -342,7 +324,7 @@ erpnext.PointOfSale.Payment = class {
 
 	render_payment_section() {
 		this.render_payment_mode_dom();
-		this.make_invoice_fields_control();
+		this.render_payment_list();
 		this.update_totals_section();
 		this.unset_grand_total_to_default_mop();
 	}
@@ -443,7 +425,7 @@ erpnext.PointOfSale.Payment = class {
 
 		this.render_loyalty_points_payment_mode();
 
-		this.attach_cash_shortcuts(doc);
+		// this.attach_cash_shortcuts(doc);
 	}
 
 	focus_on_default_mop() {
