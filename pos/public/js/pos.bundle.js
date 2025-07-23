@@ -7,3 +7,6 @@ import "../../pos/page/pos/pos_past_order_list.js";
 import "../../pos/page/pos/pos_past_order_summary.js";
 import "../../pos/page/pos/pos_controller.js";
 import "../../pos/page/pos/ebarimt_dialog.js";
+
+import "../../pos/page/pos/payments/storepay.js";
+import "../../pos/page/pos/payments/default.js";

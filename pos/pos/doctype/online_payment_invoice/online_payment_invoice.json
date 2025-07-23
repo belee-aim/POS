@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-07-22 14:21:19.848888",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "online_payment_invoice_section",
+  "status",
+  "payment_settings_type",
+  "payment_settings",
+  "data",
+  "naming_series"
+ ],
+ "fields": [
+  {
+   "fieldname": "online_payment_invoice_section",
+   "fieldtype": "Section Break",
+   "label": "Online Payment Invoice"
+  },
+  {
+   "default": "Unpaid",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Paid\nUnpaid"
+  },
+  {
+   "fieldname": "payment_settings_type",
+   "fieldtype": "Link",
+   "label": "Payment settings type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "payment_settings",
+   "fieldtype": "Dynamic Link",
+   "label": "Payment settings",
+   "options": "payment_settings_type"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "JSON",
+   "label": "Data"
+  },
+  {
+   "default": "OP-INV-.####",
+   "fieldname": "naming_series",
+   "fieldtype": "Data"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-22 14:43:38.794426",
+ "modified_by": "Administrator",
+ "module": "Pos",
+ "name": "Online Payment Invoice",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

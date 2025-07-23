@@ -1,5 +1,6 @@
 frappe.provide("erpnext.PointOfSale");
 frappe.provide('ebarimt');
+frappe.provide('Payments');
 
 frappe.pages["pos"].on_page_load = function (wrapper) {
 	const stickyTop = document.getElementsByClassName('sticky-top');

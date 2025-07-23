@@ -355,7 +355,7 @@ erpnext.PointOfSale.Payment = class {
 		}
 	}
 
-	render_payment_mode_dom() {
+	async render_payment_mode_dom() {
 		const doc = this.events.get_frm().doc;
 		const payments = doc.payments;
 		const currency = doc.currency;
@@ -384,42 +384,24 @@ erpnext.PointOfSale.Payment = class {
 					const mode = this.sanitize_mode_of_payment(p.mode_of_payment);
 					return `
 						<div class="${mode} mode-of-payment-detail">
-							<h4 class="payment-mode-name">${p.mode_of_payment}</h4>
-							<div class="${mode} mode-of-payment-control"></div>
 						</div>
 					`;
 				})
 				.join("")}`
 		);
 
+		const pos_profile = await frappe.db.get_doc("POS Profile", doc.pos_profile);
+		const storepaySettings = pos_profile.custom_storepay_settings ? (await frappe.db.get_doc("Storepay Settings", pos_profile.custom_storepay_settings)) : undefined;
 		payments.forEach((p) => {
 			const mode = this.sanitize_mode_of_payment(p.mode_of_payment);
-			const me = this;
-			this[`${mode}_control`] = frappe.ui.form.make_control({
-				df: {
-					label: p.mode_of_payment,
-					fieldtype: "Currency",
-					placeholder: __("Enter {0} amount.", [p.mode_of_payment]),
-					onchange: function () {
-						const current_value = frappe.model.get_value(p.doctype, p.name, "amount");
-						if (current_value != this.value) {
-							frappe.model
-								.set_value(p.doctype, p.name, "amount", flt(this.value))
-								.then(() => me.update_totals_section());
 
-							const formatted_currency = format_currency(this.value, currency);
-							me.$payment_modes.find(`.${mode}-amount`).html(formatted_currency);
-						}
-					},
-				},
-				parent: this.$payment_mode_details.find(`.${mode}.mode-of-payment-control`),
-				render_input: true,
-			});
-			this[`${mode}_control`].toggle_label(false);
-			this[`${mode}_control`].set_value(p.amount);
+			if(storepaySettings && p.mode_of_payment === storepaySettings.mode_of_payment) {
+				console.log(storepaySettings);
+				this[`${mode}_module`] = new Payments.Storepay(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p, pos_profile.custom_storepay_settings);
+			} else {
+				this[`${mode}_module`] = new Payments.DefaultPayment(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p);
+			}
 		});
-
-		this.render_loyalty_points_payment_mode();
 	}
 
 	focus_on_default_mop() {
@@ -597,6 +579,14 @@ erpnext.PointOfSale.Payment = class {
 		show ? this.$component.css("display", "flex") : this.$component.css("display", "none");
 	}
 
+	static sanitize_mode_of_payment(mode_of_payment) {
+		return mode_of_payment
+			.replace(/ +/g, "_")
+			.replace(/[^\p{L}\p{N}_-]/gu, "")
+			.replace(/^[^_a-zA-Z\p{L}]+/u, "")
+			.toLowerCase();
+	}
+	
 	sanitize_mode_of_payment(mode_of_payment) {
 		return mode_of_payment
 			.replace(/ +/g, "_")
@@ -632,5 +622,13 @@ erpnext.PointOfSale.Payment = class {
 			}
 		}
 		return validation_flag;
+	}
+
+	async get_online_payments() {
+		const doc = this.events.get_frm().doc;
+		const pos_profile = doc.pos_profile
+
+		// frappe.db.get_doc("POS Profile", pos_profile).then(({ payments }) => {
+
 	}
 };
