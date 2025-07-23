@@ -63,6 +63,7 @@ Payments.Storepay = class {
         
         this.addControls();
         this.addEvents();
+        this.subscribeRealtime();
     }
 
     addControls() {
@@ -118,6 +119,14 @@ Payments.Storepay = class {
                     }
                 }
             })
+        });
+    }
+
+    subscribeRealtime() {
+        frappe.realtime.on("online_payment_invoice_paid", (data) => {
+            if(data.op_inv_name === this.onlinePaymentInvoice.name) {
+                this.onInvoicePaid();
+            }
         });
     }
 

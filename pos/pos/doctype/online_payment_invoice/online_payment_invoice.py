@@ -19,6 +19,7 @@ class OnlinePaymentInvoice(Document):
 		naming_series: DF.Data | None
 		payment_settings: DF.DynamicLink | None
 		payment_settings_type: DF.Link | None
+		secret: DF.Data | None
 		status: DF.Literal["Paid", "Unpaid"]
 	# end: auto-generated types
 	pass

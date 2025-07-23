@@ -12,7 +12,8 @@
   "payment_settings",
   "data",
   "amount",
-  "naming_series"
+  "naming_series",
+  "secret"
  ],
  "fields": [
   {
@@ -53,12 +54,18 @@
    "fieldname": "amount",
    "fieldtype": "Float",
    "label": "Amount"
+  },
+  {
+   "fieldname": "secret",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Secret"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-23 15:29:23.288575",
+ "modified": "2025-07-23 16:12:43.160626",
  "modified_by": "Administrator",
  "module": "Pos",
  "name": "Online Payment Invoice",
