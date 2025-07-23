@@ -14,6 +14,7 @@ class OnlinePaymentInvoice(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		amount: DF.Float
 		data: DF.JSON | None
 		naming_series: DF.Data | None
 		payment_settings: DF.DynamicLink | None

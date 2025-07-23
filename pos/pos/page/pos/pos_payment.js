@@ -396,7 +396,6 @@ erpnext.PointOfSale.Payment = class {
 			const mode = this.sanitize_mode_of_payment(p.mode_of_payment);
 
 			if(storepaySettings && p.mode_of_payment === storepaySettings.mode_of_payment) {
-				console.log(storepaySettings);
 				this[`${mode}_module`] = new Payments.Storepay(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p, pos_profile.custom_storepay_settings);
 			} else {
 				this[`${mode}_module`] = new Payments.DefaultPayment(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p);

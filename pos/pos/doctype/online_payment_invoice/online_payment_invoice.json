@@ -11,6 +11,7 @@
   "payment_settings_type",
   "payment_settings",
   "data",
+  "amount",
   "naming_series"
  ],
  "fields": [
@@ -47,12 +48,17 @@
    "default": "OP-INV-.####",
    "fieldname": "naming_series",
    "fieldtype": "Data"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Float",
+   "label": "Amount"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 14:43:38.794426",
+ "modified": "2025-07-23 15:29:23.288575",
  "modified_by": "Administrator",
  "module": "Pos",
  "name": "Online Payment Invoice",

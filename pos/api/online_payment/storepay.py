@@ -69,6 +69,7 @@ def create_invoice_by_phone_number(storepaySettingsName, phone_number, amount):
     op_inv_doc.status = "Unpaid"
     op_inv_doc.payment_settings_type = "Storepay Settings"
     op_inv_doc.payment_settings = storepaySettingsName
+    op_inv_doc.amount = amount
     op_inv_doc.data = json.dumps(data)
 
     op_inv_doc.insert()
