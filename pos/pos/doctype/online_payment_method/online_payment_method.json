@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-24 14:11:56.501632",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "online_payment_method_section",
+  "payment_settings_type",
+  "payment_settings"
+ ],
+ "fields": [
+  {
+   "fieldname": "online_payment_method_section",
+   "fieldtype": "Section Break",
+   "label": "Online Payment Method"
+  },
+  {
+   "fieldname": "payment_settings_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payment Settings Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "payment_settings",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Payment Settings",
+   "options": "payment_settings_type"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-24 14:21:09.755921",
+ "modified_by": "Administrator",
+ "module": "Pos",
+ "name": "Online Payment Method",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

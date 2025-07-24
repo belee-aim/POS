@@ -1,9 +1,9 @@
 Payments.Storepay = class {
-    constructor(wrapper, events, payment, storepaySettingsName) {
+    constructor(wrapper, events, payment, storepaySettings) {
         this.wrapper = wrapper;
         this.events = events;
         this.payment = payment;
-        this.storepaySettingsName = storepaySettingsName;
+        this.storepaySettings = storepaySettings;
 
         this.init();
 
@@ -141,7 +141,7 @@ Payments.Storepay = class {
         frappe.call({
             method: "pos.api.online_payment.storepay.create_invoice_by_phone_number",
             args: {
-                storepaySettingsName: this.storepaySettingsName,
+                storepaySettingsName: this.storepaySettings.name,
                 phone_number,
                 amount,
             },

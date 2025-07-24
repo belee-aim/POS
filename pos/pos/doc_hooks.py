@@ -2,20 +2,19 @@ import frappe
 
 from erpnext.accounts.doctype.pos_profile.pos_profile import POSProfile
 from erpnext.accounts.doctype.pos_payment_method.pos_payment_method import POSPaymentMethod
+from pos.pos.doctype.online_payment_method.online_payment_method import OnlinePaymentMethod
 
 def pos_profile_before_validate(pos_profile: POSProfile, event):
     populate_online_payment_payment_methods(pos_profile)
 
 def populate_online_payment_payment_methods(pos_profile: POSProfile):
-    op_payment_methods = []
-    if(pos_profile.custom_storepay_settings):
-        mode_of_payment = frappe.db.get_value("Storepay Settings", pos_profile.custom_storepay_settings, "mode_of_payment")
-        op_payment_methods.append(mode_of_payment)
-
-    for op_payment_method in op_payment_methods:
+    op_payment_method: OnlinePaymentMethod
+    for op_payment_method in pos_profile.custom_online_payment_methods:
+        op_settings = frappe.get_doc(op_payment_method.payment_settings_type, op_payment_method.payment_settings)
+        
         found = False
         for payment in pos_profile.payments:
-            if(payment.mode_of_payment == op_payment_method):
+            if(payment.mode_of_payment == op_settings.mode_of_payment):
                 found = True
                 break
         

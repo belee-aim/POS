@@ -23,6 +23,10 @@ Payments.DefaultPayment = class {
                 fieldtype: "Currency",
                 placeholder: __("Enter {0} amount.", [me.payment.mode_of_payment]),
                 onchange: function () {
+                    if(this.value < 0) {
+                        me.amountControl.set_value(0);
+                    }
+
                     const current_value = frappe.model.get_value(me.payment.doctype, me.payment.name, "amount");
                     if (current_value != this.value) {
                         frappe.model

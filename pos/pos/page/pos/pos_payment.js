@@ -391,14 +391,27 @@ erpnext.PointOfSale.Payment = class {
 		);
 
 		const pos_profile = await frappe.db.get_doc("POS Profile", doc.pos_profile);
-		const storepaySettings = pos_profile.custom_storepay_settings ? (await frappe.db.get_doc("Storepay Settings", pos_profile.custom_storepay_settings)) : undefined;
+		const all_online_payment_settings = await Promise.all(
+			pos_profile.custom_online_payment_methods.map(op_method => {
+				return frappe.db.get_doc(op_method.payment_settings_type, op_method.payment_settings);
+			})	
+		)
+
 		payments.forEach((p) => {
 			const mode = this.sanitize_mode_of_payment(p.mode_of_payment);
 
-			if(storepaySettings && p.mode_of_payment === storepaySettings.mode_of_payment) {
-				this[`${mode}_module`] = new Payments.Storepay(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p, pos_profile.custom_storepay_settings);
-			} else {
+			const online_payment_settings = all_online_payment_settings.find(op_s => op_s.mode_of_payment === p.mode_of_payment);
+
+			if(!online_payment_settings) {
 				this[`${mode}_module`] = new Payments.DefaultPayment(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p);
+				return;
+			}
+
+			switch(online_payment_settings.doctype) {
+				case "Storepay Settings": {
+					this[`${mode}_module`] = new Payments.Storepay(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p, online_payment_settings);
+					break;
+				}
 			}
 		});
 	}
