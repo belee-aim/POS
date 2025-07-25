@@ -24,7 +24,7 @@ def populate_online_payment_payment_methods(pos_profile: POSProfile):
         pos_pm: POSPaymentMethod = frappe.new_doc("POS Payment Method")
         pos_pm.allow_in_returns = 0
         pos_pm.default = 0
-        pos_pm.mode_of_payment = op_payment_method
+        pos_pm.mode_of_payment = op_settings.mode_of_payment
         pos_pm.parent = pos_profile.name
         pos_pm.parentfield = 'payments'
         pos_pm.parenttype = pos_profile.doctype

@@ -4,6 +4,7 @@ import json
 import secrets
 
 import frappe
+import frappe.realtime
 from frappe.utils import get_url
 from pos.pos.doctype.storepay_settings.storepay_settings import StorepaySettings
 from pos.pos.doctype.storepay_api_settings.storepay_api_settings import StorepayAPISettings
@@ -62,7 +63,7 @@ def create_invoice_by_phone_number(storepaySettingsName, phone_number, amount):
             "mobileNumber": phone_number,
             "description": "Development test",
             "amount": amount,
-            "callbackUrl": f"{get_url()}/api/method/pos.api.online_payment.invoice.callback?op_inv_name={op_inv_doc.name}&invoice_secret={op_inv_doc.secret}"
+            "callbackUrl": f"{get_url()}/api/method/pos.api.online_payment.storepay.callback?op_inv_name={op_inv_doc.name}&invoice_secret={op_inv_doc.secret}"
         }
     )
 
@@ -86,7 +87,8 @@ def create_invoice_by_phone_number(storepaySettingsName, phone_number, amount):
 
     return op_inv_doc
 
-def check_invoice(data):
+def check_invoice(onlinePaymentInvoice: OnlinePaymentInvoice):
+    data = json.loads(onlinePaymentInvoice.data)
     req = requests.get(
         url=f"https://service.storepay.mn:8778/lend-merchant/merchant/loan/check/{data['value']}",
     )
@@ -100,4 +102,21 @@ def check_invoice(data):
         frappe.throw("".join([msg["code"] for msg in data["msgList"]]))
         return
     
-    return data["data"]["isConfirmed"]
+    if(not data["data"]["isConfirmed"]):
+        frappe.msgprint("[Storepay] Invoice is pending or cancelled")
+        return False
+    else:
+        return True
+
+@frappe.whitelist(allow_guest=True, methods=['GET'])
+def callback(op_inv_name, invoice_secret):
+    op_inv: OnlinePaymentInvoice = frappe.get_doc("Online Payment Invoice", op_inv_name)
+
+    if(invoice_secret == op_inv.secret):
+        op_inv.status = "Paid"
+        op_inv.save()
+        frappe.db.commit()
+        
+        frappe.realtime.publish_realtime("online_payment_invoice_paid", {
+            "op_inv_name": op_inv_name,
+        })

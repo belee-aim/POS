@@ -412,6 +412,10 @@ erpnext.PointOfSale.Payment = class {
 					this[`${mode}_module`] = new Payments.Storepay(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p, online_payment_settings);
 					break;
 				}
+				case "Pocket Zero Settings": {
+					this[`${mode}_module`] = new Payments.PocketZero(this.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`), {}, p, online_payment_settings);
+					break;
+				}
 			}
 		});
 	}

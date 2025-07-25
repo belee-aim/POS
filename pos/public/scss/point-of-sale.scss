@@ -793,6 +793,7 @@
 				overflow-x: hidden;
 				overflow-y: scroll;
 				flex-shrink: 0;
+				max-width: 30%;
 
 				> .payment-mode-wrapper {
 					min-width: 40%;
@@ -802,6 +803,13 @@
 						@extend .pos-card;
 						@extend .pointer-no-select;
 						padding: var(--padding-md) var(--padding-lg);
+
+						> .mop-name {
+							display: block;
+							overflow: hidden;
+							text-overflow: ellipsis;
+							white-space: nowrap;
+						}
 
 						> .pay-amount {
 							display: inline;

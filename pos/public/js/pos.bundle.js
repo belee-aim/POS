@@ -10,3 +10,4 @@ import "../../pos/page/pos/ebarimt_dialog.js";
 
 import "../../pos/page/pos/payments/storepay.js";
 import "../../pos/page/pos/payments/default.js";
+import "../../pos/page/pos/payments/pocket_zero.js";
