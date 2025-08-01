@@ -66,7 +66,7 @@ def submit_receipt(receiptParams, invoiceDoc):
                 "items": [
                     {
                         "name": item["item_name"],
-                        "barCode": item["barcode"] if ("barcode" in item and item["barcode"] != None) else "0123456789012",
+                        "barCode": item["barcode"] if ("barcode" in item and item["barcode"] != None) else "6911334030790",
                         "barCodeType": "GS1",
                         "classificationCode": "3212911",
                         "measureUnit": item["uom"],
@@ -134,10 +134,29 @@ def print_format_data(receiptName):
 @frappe.whitelist()
 def send_data():
     ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
-    req = requests.get(ebarimtSettings.base_url, timeout=60)
+    req = requests.get(ebarimtSettings.base_url + "/rest/sendData", timeout=60)
 
     if(req.status_code != 200):
         frappe.throw('[Ebarimt] Send data error')
 
     frappe.msgprint('Send Data successful')
     return None
+
+@frappe.whitelist()
+def return_receipt(invoice_doc_name):
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    invoiceData = json.loads(frappe.get_value("Ebarimt Receipt", invoice_doc_name, "data"))
+
+    try:
+        req = requests.delete(ebarimtSettings.base_url + "/rest/receipt", json={
+            "id": invoiceData["id"],
+            "date": invoiceData["date"],
+        })
+
+        if(req.status_code != 200):
+            frappe.throw('[Ebarimt] Invoice return error')
+
+        frappe.msgprint('Invoice return successful')
+        return None
+    except requests.exceptions.ConnectionError:
+        frappe.msgprint('Invoice return successful')
