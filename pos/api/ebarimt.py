@@ -130,3 +130,14 @@ def print_format_data(receiptName):
     receipt_data["qrImage"] = generate_qrcode_data_url(receipt_data["qrData"])
 
     return receipt_data
+
+@frappe.whitelist()
+def send_data():
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    req = requests.get(ebarimtSettings.base_url, timeout=60)
+
+    if(req.status_code != 200):
+        frappe.throw('[Ebarimt] Send data error')
+
+    frappe.msgprint('Send Data successful')
+    return None
