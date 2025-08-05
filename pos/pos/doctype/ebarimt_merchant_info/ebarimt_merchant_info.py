@@ -15,7 +15,7 @@ class EbarimtMerchantInfo(Document):
 		from frappe.types import DF
 
 		branch_no: DF.Data
-		district_code: DF.Data
+		district_code: DF.Literal[None]
 		merchant_tin: DF.Data
 		pos_no: DF.Data
 	# end: auto-generated types

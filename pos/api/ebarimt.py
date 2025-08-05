@@ -50,7 +50,7 @@ def submit_receipt(receiptParams, invoiceDoc):
         "branchNo": merchant.branch_no,
         "totalAmount": invoiceDoc["net_total"],
         "totalVAT": invoiceDoc["net_total"] / 11,
-        "districtCode": merchant.district_code,
+        "districtCode": str(merchant.district_code).split(': ')[-1],
         "merchantTin": merchant.merchant_tin,
         "posNo": merchant.pos_no,
         "type": receiptParams["type"],
@@ -197,3 +197,12 @@ def update_receipt(invoice_doc_name):
         frappe.set_value("Ebarimt Receipt", invoice_doc_name, "data", json.dumps(resp_data, indent=2))
     except requests.exceptions.ConnectionError:
         frappe.msgprint('[Ebarimt] Баримтыг засварлахад алдаа гарлаа')
+
+@frappe.whitelist()
+def get_branch_codes():
+    resp = requests.get("https://api.ebarimt.mn/api/info/check/getBranchInfo")
+
+    if(resp.status_code != 200):
+        frappe.throw('[Ebarimt] Орон нутгийн кодыг авахад алдаа гарлаа.')
+
+    return resp.json()
