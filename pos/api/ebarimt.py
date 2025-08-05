@@ -49,7 +49,7 @@ def submit_receipt(receiptParams, invoiceDoc):
     body = {
         "branchNo": merchant.branch_no,
         "totalAmount": invoiceDoc["net_total"],
-        "totalVat": invoiceDoc["net_total"] / 11,
+        "totalVAT": invoiceDoc["net_total"] / 11,
         "districtCode": merchant.district_code,
         "merchantTin": merchant.merchant_tin,
         "posNo": merchant.pos_no,
@@ -59,7 +59,7 @@ def submit_receipt(receiptParams, invoiceDoc):
         "receipts": [
             {
                 "totalAmount": invoiceDoc["net_total"],
-                "totalVat": invoiceDoc["net_total"] / 11,
+                "totalVAT": invoiceDoc["net_total"] / 11,
                 "taxType": "VAT_ABLE",
                 "merchantTin": merchant.merchant_tin,
                 "type": receiptParams["type"],
@@ -95,7 +95,7 @@ def submit_receipt(receiptParams, invoiceDoc):
         return None
 
     doc: EbarimtReceipt = frappe.new_doc("Ebarimt Receipt")
-    doc.data = json.dumps(resp_data)
+    doc.data = json.dumps(resp_data, indent=2)
     doc.insert()
 
     return doc
@@ -137,9 +137,9 @@ def send_data():
     req = requests.get(ebarimtSettings.base_url + "/rest/sendData", timeout=60)
 
     if(req.status_code != 200):
-        frappe.throw('[Ebarimt] Send data error')
+        frappe.throw('[Ebarimt] Баримт илгээхэд алдаа гарлаа.')
 
-    frappe.msgprint('Send Data successful')
+    frappe.msgprint('[Ebarimt] Баримт илгээх амжилттай.')
     return None
 
 @frappe.whitelist()
@@ -154,9 +154,46 @@ def return_receipt(invoice_doc_name):
         })
 
         if(req.status_code != 200):
-            frappe.throw('[Ebarimt] Invoice return error')
+            frappe.throw('[Ebarimt] Баримт буцаалт амжилтгүй.')
 
-        frappe.msgprint('Invoice return successful')
+        frappe.msgprint('[Ebarimt] Баримтыг амжилттай буцаалаа.')
         return None
     except requests.exceptions.ConnectionError:
-        frappe.msgprint('Invoice return successful')
+        frappe.msgprint('[Ebarimt] Баримт буцаахад алдаа гарлаа.')
+
+@frappe.whitelist()
+def update_receipt(invoice_doc_name):
+    baseUrl = frappe.db.get_single_value("Ebarimt Settings", "base_url")
+    invoiceData = json.loads(frappe.get_value("Ebarimt Receipt", invoice_doc_name, "data"))
+
+    for receipt in invoiceData["receipts"]:
+        receipt["id"] = None
+
+    body = {
+        "inactiveId": invoiceData["id"],
+        "branchNo": invoiceData["branchNo"],
+        "totalAmount": invoiceData["totalAmount"],
+        "totalVat": invoiceData["totalVAT"],
+        "totalCityTax": invoiceData["totalCityTax"],
+        "districtCode": invoiceData["districtCode"],
+        "merchantTin": invoiceData["merchantTin"],
+        "posNo": invoiceData["posNo"],
+        "type": invoiceData["type"],
+        "billIdSuffix": f"POS-{date.today()}",
+        "customerTin": None if "customerTin" not in invoiceData else invoiceData["customerTin"],
+        "receipts": invoiceData["receipts"],
+        "payments": invoiceData["payments"],
+    }
+
+    try:
+        resp = requests.post(baseUrl + "/rest/receipt", json=body)
+        resp_data = resp.json()
+
+        if(resp_data["status"] != "SUCCESS"):
+            frappe.throw(f"[Ebarimt] Баримт засварлах амжилтгүй: {resp_data['message']}")
+            return
+        
+        frappe.msgprint('[Ebarimt] Баримтыг амжилттай засварлалаа.')
+        frappe.set_value("Ebarimt Receipt", invoice_doc_name, "data", json.dumps(resp_data, indent=2))
+    except requests.exceptions.ConnectionError:
+        frappe.msgprint('[Ebarimt] Баримтыг засварлахад алдаа гарлаа')

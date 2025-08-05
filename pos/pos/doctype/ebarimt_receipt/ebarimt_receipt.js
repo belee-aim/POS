@@ -10,6 +10,14 @@ frappe.ui.form.on("Ebarimt Receipt", {
                     invoice_doc_name: frm.docname,
                 }
             });
-        }, __('Actions')); // 'Actions' is the group label for the button
+        }, __('Actions'));
+        frm.add_custom_button(__('Баримт засварлах'), function() {
+            frappe.call({
+                method: "pos.api.ebarimt.update_receipt",
+                args: {
+                    invoice_doc_name: frm.docname,
+                }
+            });
+        }, __('Actions'));
 	},
 });
