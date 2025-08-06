@@ -36,7 +36,7 @@ def submit_receipt(receiptParams, invoiceDoc):
     receiptParams = json.loads(receiptParams)
     invoiceDoc = json.loads(invoiceDoc)
     
-    baseUrl = frappe.db.get_single_value("Ebarimt Settings", "base_url")
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
 
     merchant: EbarimtMerchantInfo = None
     try:
@@ -46,10 +46,36 @@ def submit_receipt(receiptParams, invoiceDoc):
         frappe.throw('Merchant info not found')
         return None
 
+    vat = None
+    nhat = None
+    for tax in invoiceDoc["taxes"]:
+        if(tax["account_head"] == ebarimtSettings.noat_account):
+            vat = tax
+        if(tax["account_head"] == ebarimtSettings.nhat_account):
+            nhat = tax
+
+    if(vat == None):
+        frappe.throw("[Ebarimt] НӨАТ-ын данс олдсонгүй. Ebarimt-н тохиргоонд оруулна уу")
+    
+    totalAmount = invoiceDoc["grand_total"]
+    totalVat = vat["tax_amount"]
+    totalCityTax = 0 if nhat is None else nhat["tax_amount"]
+
+    def get_item_wise_tax(tax, item):
+        if(tax == None):
+            return 0
+        
+        tax_amounts = json.loads(tax["item_wise_tax_detail"])
+        if(item not in tax_amounts):
+            return 0
+        
+        return tax_amounts[item][1]
+
     body = {
         "branchNo": merchant.branch_no,
-        "totalAmount": invoiceDoc["net_total"],
-        "totalVAT": invoiceDoc["net_total"] / 11,
+        "totalAmount": totalAmount,
+        "totalVAT": totalVat,
+        "totalCityTax": totalCityTax,
         "districtCode": str(merchant.district_code).split(': ')[-1],
         "merchantTin": merchant.merchant_tin,
         "posNo": merchant.pos_no,
@@ -58,8 +84,9 @@ def submit_receipt(receiptParams, invoiceDoc):
         "customerTin": None if receiptParams["type"] == 'B2C_RECEIPT' else get_customerTin(receiptParams["companyReg"]),
         "receipts": [
             {
-                "totalAmount": invoiceDoc["net_total"],
-                "totalVAT": invoiceDoc["net_total"] / 11,
+                "totalAmount": totalAmount,
+                "totalVAT": totalVat,
+                "totalCityTax": totalCityTax,
                 "taxType": "VAT_ABLE",
                 "merchantTin": merchant.merchant_tin,
                 "type": receiptParams["type"],
@@ -71,9 +98,10 @@ def submit_receipt(receiptParams, invoiceDoc):
                         "classificationCode": "3212911",
                         "measureUnit": item["uom"],
                         "qty": item["qty"],
-                        "unitPrice": item["net_rate"],
-                        "totalAmount": item["net_amount"],
-                        "totalVat": item["net_amount"] / 11,
+                        "unitPrice": item["rate"],
+                        "totalAmount": item["amount"],
+                        "totalVAT": get_item_wise_tax(vat, item["item_code"]),
+                        "totalCityTax": get_item_wise_tax(nhat, item["item_code"]),
                     } for item in invoiceDoc["items"]
                 ]
             }
@@ -82,12 +110,12 @@ def submit_receipt(receiptParams, invoiceDoc):
             {
             "code": "CASH",
             "status": "PAID",
-            "paidAmount": invoiceDoc["net_total"]
+            "paidAmount": totalAmount
             }
         ]
     }
 
-    resp = requests.post(baseUrl + "/rest/receipt", json=body)
+    resp = requests.post(ebarimtSettings.base_url + "/rest/receipt", json=body)
     resp_data = resp.json()
 
     if(resp_data["status"] != "SUCCESS"):

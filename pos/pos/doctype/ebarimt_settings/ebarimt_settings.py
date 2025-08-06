@@ -16,5 +16,7 @@ class EbarimtSettings(Document):
 
 		base_url: DF.Data
 		info_url: DF.Data
+		nhat_account: DF.Link | None
+		noat_account: DF.Link
 	# end: auto-generated types
 	pass
