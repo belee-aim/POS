@@ -15,6 +15,7 @@ class EbarimtSettings(Document):
 		from frappe.types import DF
 
 		base_url: DF.Data
+		default_classification_code: DF.Data | None
 		info_url: DF.Data
 		nhat_account: DF.Link | None
 		noat_account: DF.Link

@@ -1,0 +1,13 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Item",
+  "enabled": 1,
+  "modified": "2025-08-07 16:33:19.953766",
+  "module": "Pos",
+  "name": "Default classification code setter",
+  "script": "frappe.ui.form.on('Item', {\n\trefresh(frm) {\n\t    if(!frm.doc.custom_classificationcode) {\n    \t    frappe.db.get_single_value('Ebarimt Settings', 'default_classification_code')\n             .then(default_c_code => {\n                frm.set_value(\"custom_classificationcode\", default_c_code);\n             })\n\t    }\n    }\n})",
+  "view": "Form"
+ }
+]

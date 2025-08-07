@@ -70,6 +70,8 @@ def submit_receipt(receiptParams, invoiceDoc):
             return 0
         
         return tax_amounts[item][1]
+    
+    print(json.dumps(invoiceDoc, indent=2))
 
     body = {
         "branchNo": merchant.branch_no,
@@ -82,30 +84,6 @@ def submit_receipt(receiptParams, invoiceDoc):
         "type": receiptParams["type"],
         "billIdSuffix": f"POS-{date.today()}",
         "customerTin": None if receiptParams["type"].find('B2C') != -1 else get_customerTin(receiptParams["companyReg"]),
-        "receipts": [
-            {
-                "totalAmount": totalAmount,
-                "totalVAT": totalVat,
-                "totalCityTax": totalCityTax,
-                "taxType": "VAT_ABLE",
-                "merchantTin": merchant.merchant_tin,
-                "type": receiptParams["type"],
-                "items": [
-                    {
-                        "name": item["item_name"],
-                        "barCode": item["barcode"] if ("barcode" in item and item["barcode"] != None) else "6911334030790",
-                        "barCodeType": "GS1",
-                        "classificationCode": "3212911",
-                        "measureUnit": item["uom"],
-                        "qty": item["qty"],
-                        "unitPrice": item["rate"],
-                        "totalAmount": item["amount"],
-                        "totalVAT": get_item_wise_tax(vat, item["item_code"]),
-                        "totalCityTax": get_item_wise_tax(nhat, item["item_code"]),
-                    } for item in invoiceDoc["items"]
-                ]
-            }
-        ],
         "payments": None if receiptParams["type"].find('INVOICE') != -1 else [
             {
             "code": "CASH",
@@ -114,6 +92,38 @@ def submit_receipt(receiptParams, invoiceDoc):
             }
         ]
     }
+
+    body["receipts"] = []
+
+    vattable_items = []
+    for item in invoiceDoc["items"]:
+        classification_code = frappe.db.get_value("Item", item["item_code"], "custom_classificationcode")
+        default_classification_code = frappe.db.get_single_value("Ebarimt Settings", "default_classification_code")
+        print(classification_code)
+        print(default_classification_code)
+
+        vattable_items.append({
+            "name": item["item_name"],
+            "barCode": item["barcode"] if ("barcode" in item and item["barcode"] != None) else "6911334030790",
+            "barCodeType": "GS1",
+            "classificationCode": classification_code if classification_code is not None and classification_code != "" else default_classification_code,
+            "measureUnit": item["uom"],
+            "qty": item["qty"],
+            "unitPrice": item["rate"],
+            "totalAmount": item["amount"],
+            "totalVAT": get_item_wise_tax(vat, item["item_code"]),
+            "totalCityTax": get_item_wise_tax(nhat, item["item_code"]),
+        })
+
+    body["receipts"].append({
+        "totalAmount": totalAmount,
+        "totalVAT": totalVat,
+        "totalCityTax": totalCityTax,
+        "taxType": "VAT_ABLE",
+        "merchantTin": merchant.merchant_tin,
+        "type": receiptParams["type"],
+        "items": vattable_items
+    })
 
     resp = requests.post(ebarimtSettings.base_url + "/rest/receipt", json=body)
     resp_data = resp.json()

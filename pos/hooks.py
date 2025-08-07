@@ -234,6 +234,13 @@ doc_events = {
 # 	"pos.auth.validate"
 # ]
 
+fixtures = [
+    {
+        "doctype": "Client Script",
+        "filters": [["module", "in", ["Pos"]]]
+    }
+]
+
 # Automatically update python controller files with type annotations for this app.
 export_python_type_annotations = True
 
