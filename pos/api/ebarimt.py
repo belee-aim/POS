@@ -81,7 +81,7 @@ def submit_receipt(receiptParams, invoiceDoc):
         "posNo": merchant.pos_no,
         "type": receiptParams["type"],
         "billIdSuffix": f"POS-{date.today()}",
-        "customerTin": None if receiptParams["type"] == 'B2C_RECEIPT' else get_customerTin(receiptParams["companyReg"]),
+        "customerTin": None if receiptParams["type"].find('B2C') != -1 else get_customerTin(receiptParams["companyReg"]),
         "receipts": [
             {
                 "totalAmount": totalAmount,
@@ -106,7 +106,7 @@ def submit_receipt(receiptParams, invoiceDoc):
                 ]
             }
         ],
-        "payments": [
+        "payments": None if receiptParams["type"].find('INVOICE') != -1 else [
             {
             "code": "CASH",
             "status": "PAID",

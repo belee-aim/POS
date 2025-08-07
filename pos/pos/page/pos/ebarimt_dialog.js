@@ -11,12 +11,14 @@ ebarimt.Dialog = class {
                     options: [
                         {value: 'B2C_RECEIPT', label: 'Хувь хүн'},
                         {value: 'B2B_RECEIPT', label: 'Байгууллага'},
+                        {value: 'B2C_INVOICE', label: 'Хувь хүн нэхэмжлэл'},
+                        {value: 'B2B_INVOICE', label: 'Байгууллага нэхэмжлэл'},
                     ],
                     default: 'B2C_RECEIPT',
                     change: () => {
                         console.log(dialog);
                         let type = dialog.get_value('type');
-                        if(type === 'B2C_RECEIPT') {
+                        if(type.includes('B2C')) {
                             dialog.get_field('companyReg').df.hidden = 1;
                             dialog.get_field('companyName').df.hidden = 1;
                             dialog.get_primary_btn().prop('disabled', false);
