@@ -170,6 +170,8 @@ def submit_receipt(receiptParams, invoiceDoc):
     if(resp_data["status"] != "SUCCESS"):
         frappe.throw(f"Ebarimt unsuccessful: {resp_data['message']}")
         return None
+    
+    get_info()
 
     doc: EbarimtReceipt = frappe.new_doc("Ebarimt Receipt")
     doc.data = json.dumps(resp_data, indent=2)
@@ -299,3 +301,22 @@ def getProductTaxCode():
             productCode["taxTypeName"] = 'NOT_VAT'
 
     return msg
+
+@frappe.whitelist()
+def get_info():
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    resp = requests.get(ebarimtSettings.base_url + "/rest/info")
+
+    ebarimtSettings.lottery_threshold
+
+    if(resp.status_code != 200):
+        frappe.throw('[Ebarimt] getInformation алдаа гарлаа.')
+
+    data = resp.json()
+    if(data["leftLotteries"] < ebarimtSettings.lottery_threshold):
+        frappe.msgprint(
+            title='Ebarimt',
+            msg=f'Системд {data["leftLotteries"]} сугалаа үлдсэн байна. Хэрэв сугалаа дууссан үед баримт илгээвэл сугалаагүй гарахыг анхаарна уу.',
+            alert=True
+        )
+    return data

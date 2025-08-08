@@ -7,6 +7,14 @@ frappe.ui.form.on("Ebarimt Settings", {
             frappe.call({
                 method: "pos.api.ebarimt.send_data",
             });
-        }, __('Actions')); // 'Actions' is the group label for the button
+        }, __('Actions'));
+        frm.add_custom_button(__('Get Info'), function() {
+            frappe.call({
+                method: "pos.api.ebarimt.get_info",
+                callback: ({message}) => {
+                    frappe.show_alert(`Системд ${message.leftLotteries} сугалаа үлдсэн байна`);
+                }
+            });
+        }, __('Actions'));
 	},
 });
