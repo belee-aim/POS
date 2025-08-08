@@ -122,10 +122,13 @@ def submit_receipt(receiptParams, invoiceDoc):
             classification_code = frappe.db.get_value("Item", item["item_code"], "custom_classificationcode")
             default_classification_code = frappe.db.get_single_value("Ebarimt Settings", "default_classification_code")
 
+            barcode = item["barcode"]
+            barcodeType = frappe.db.get_value("Item Barcode", filters={"barcode": barcode}, fieldname="barcode_type")
+
             items.append({
                 "name": item["item_name"],
-                "barCode": item["barcode"] if ("barcode" in item and item["barcode"] != None) else "6911334030790",
-                "barCodeType": "GS1",
+                "barCode": barcode,
+                "barCodeType": "UNDEFINED" if barcodeType not in ["GS1", "ISBN"] else barcodeType,
                 "classificationCode": classification_code if classification_code is not None and classification_code != "" else default_classification_code,
                 "taxProductCode": None if tax_type == "VAT_ABLE" else frappe.db.get_value("Item", item["item_code"], "custom_taxproductcode").split(':')[0],
                 "measureUnit": item["uom"],
@@ -158,6 +161,8 @@ def submit_receipt(receiptParams, invoiceDoc):
             "items": items
         }
         body["receipts"].append(receipt)
+
+    # print(json.dumps(body, indent=2))
 
     resp = requests.post(ebarimtSettings.base_url + "/rest/receipt", json=body)
     resp_data = resp.json()
