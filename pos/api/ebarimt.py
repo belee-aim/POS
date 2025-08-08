@@ -244,3 +244,12 @@ def get_branch_codes():
         frappe.throw('[Ebarimt] Орон нутгийн кодыг авахад алдаа гарлаа.')
 
     return resp.json()
+
+@frappe.whitelist()
+def getProductTaxCode():
+    resp = requests.get("https://api.ebarimt.mn/api/receipt/receipt/getProductTaxCode")
+
+    if(resp.status_code != 200):
+        frappe.throw('[Ebarimt] Бараа үйлчилгээний код авахад алдаа гарлаа.')
+
+    return resp.json()

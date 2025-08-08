@@ -9,5 +9,16 @@
   "name": "Default classification code setter",
   "script": "frappe.ui.form.on('Item', {\n\trefresh(frm) {\n\t    if(!frm.doc.custom_classificationcode) {\n    \t    frappe.db.get_single_value('Ebarimt Settings', 'default_classification_code')\n             .then(default_c_code => {\n                frm.set_value(\"custom_classificationcode\", default_c_code);\n             })\n\t    }\n    }\n})",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Item",
+  "enabled": 1,
+  "modified": "2025-08-08 11:53:14.357666",
+  "module": "Pos",
+  "name": "Item productTax code fetcher",
+  "script": "frappe.ui.form.on('Item', {\n\trefresh: (frm) => {\n\t    fetchTaxProductCodes(frm);\n\t},\n\tcustom_tax_type: (frm) => {\n\t    frm.doc.custom_taxproductcode = undefined;\n\t    fetchTaxProductCodes(frm);\n\t},\n\tvalidate: (frm) => {\n        if(!frm.doc.custom_tax_type || frm.doc.custom_tax_type.includes(\"VAT_ABLE\")) {\n            frappe.validated = true;\n            return\n        }\n\t    \n\t    if(!frm.doc.custom_taxproductcode) {\n\t        frappe.msgprint(\"[Ebarimt] Татвараас чөлөөлөх барааны кодыг заавал сонгоно уу.\");\n            frappe.validated = false;\n\t    } else {\n            frappe.validated = true;\n\t    }\n\t}\n});\n\nconst fetchTaxProductCodes = (frm) => {\n    if(!frm.doc.custom_tax_type || frm.doc.custom_tax_type.includes(\"VAT_ABLE\")) {\n        return;\n    }\n    \n    const tax_type = frm.doc.custom_tax_type.split(\": \")[1];\n\n    if(!frm.doc.custom_taxproductcode) {\n        frm.set_df_property('custom_taxproductcode', 'options', ['уншиж байна...']);\n    }\n    frappe.call({\n        method: \"pos.api.ebarimt.getProductTaxCode\",\n        callback: ({message})=> {\n            frm.set_df_property('custom_taxproductcode', 'options', message.data\n                .filter(productCode => productCode.taxTypeName === tax_type)\n                .map(productCode => {\n                    const {taxProductCode, taxProductName} = productCode;\n                    \n                    const truncateString = (str, num) => {\n                      if (str.length <= num) return str;\n                      return str.slice(0, num) + '...';\n                    }\n                    \n                    return `${taxProductCode}: ${truncateString(taxProductName, 60)}`;\n                }).sort().join(\"\\n\"));\n            frm.refresh_field('custom_taxproductcode');\n        }\n    })\n}",
+  "view": "Form"
  }
 ]
