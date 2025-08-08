@@ -10,6 +10,13 @@ from pos.pos.doctype.ebarimt_settings.ebarimt_settings import EbarimtSettings
 from pos.pos.doctype.ebarimt_merchant_info.ebarimt_merchant_info import EbarimtMerchantInfo
 from pos.pos.doctype.ebarimt_receipt.ebarimt_receipt import EbarimtReceipt
 
+TAX_TYPES = [
+    'VAT_ABLE',
+    'VAT_FREE',
+    'VAT_ZERO',
+    'NOT_VAT',
+]
+
 @frappe.whitelist()
 def get_merchant_info(regNo: str):
     infoUrl = frappe.db.get_single_value("Ebarimt Settings", "info_url")
@@ -71,8 +78,6 @@ def submit_receipt(receiptParams, invoiceDoc):
         
         return tax_amounts[item][1]
     
-    print(json.dumps(invoiceDoc, indent=2))
-
     body = {
         "branchNo": merchant.branch_no,
         "totalAmount": totalAmount,
@@ -95,35 +100,64 @@ def submit_receipt(receiptParams, invoiceDoc):
 
     body["receipts"] = []
 
-    vattable_items = []
+    items_by_tax_type = {}
+    for tax_type in TAX_TYPES:
+        items_by_tax_type[tax_type] = []
+
     for item in invoiceDoc["items"]:
-        classification_code = frappe.db.get_value("Item", item["item_code"], "custom_classificationcode")
-        default_classification_code = frappe.db.get_single_value("Ebarimt Settings", "default_classification_code")
-        print(classification_code)
-        print(default_classification_code)
+        item_tax_type = frappe.db.get_value("Item", item["item_code"], "custom_tax_type")
+        if(item_tax_type == None):
+            item_tax_type = "VAT_ABLE"
+        else:
+            item_tax_type = item_tax_type.split(": ")[-1]
 
-        vattable_items.append({
-            "name": item["item_name"],
-            "barCode": item["barcode"] if ("barcode" in item and item["barcode"] != None) else "6911334030790",
-            "barCodeType": "GS1",
-            "classificationCode": classification_code if classification_code is not None and classification_code != "" else default_classification_code,
-            "measureUnit": item["uom"],
-            "qty": item["qty"],
-            "unitPrice": item["rate"],
-            "totalAmount": item["amount"],
-            "totalVAT": get_item_wise_tax(vat, item["item_code"]),
-            "totalCityTax": get_item_wise_tax(nhat, item["item_code"]),
-        })
+        items_by_tax_type[item_tax_type].append(item)
 
-    body["receipts"].append({
-        "totalAmount": totalAmount,
-        "totalVAT": totalVat,
-        "totalCityTax": totalCityTax,
-        "taxType": "VAT_ABLE",
-        "merchantTin": merchant.merchant_tin,
-        "type": receiptParams["type"],
-        "items": vattable_items
-    })
+    for tax_type in TAX_TYPES:
+        if(len(items_by_tax_type[tax_type]) == 0):
+            continue
+
+        items = []
+        for item in items_by_tax_type[tax_type]:
+            classification_code = frappe.db.get_value("Item", item["item_code"], "custom_classificationcode")
+            default_classification_code = frappe.db.get_single_value("Ebarimt Settings", "default_classification_code")
+
+            items.append({
+                "name": item["item_name"],
+                "barCode": item["barcode"] if ("barcode" in item and item["barcode"] != None) else "6911334030790",
+                "barCodeType": "GS1",
+                "classificationCode": classification_code if classification_code is not None and classification_code != "" else default_classification_code,
+                "taxProductCode": None if tax_type == "VAT_ABLE" else frappe.db.get_value("Item", item["item_code"], "custom_taxproductcode").split(':')[0],
+                "measureUnit": item["uom"],
+                "qty": item["qty"],
+                "unitPrice": item["rate"],
+                "totalAmount": item["amount"],
+                "totalVAT": get_item_wise_tax(vat, item["item_code"]),
+                "totalCityTax": get_item_wise_tax(nhat, item["item_code"]),
+            })
+
+        if(len(items) == 0):
+            continue
+
+        item_totalAmount = 0
+        item_totalVAT = 0
+        item_totalCityTax = 0
+
+        for item in items:
+            item_totalAmount += item["totalAmount"]
+            item_totalVAT += item["totalVAT"]
+            item_totalCityTax += item["totalCityTax"]
+
+        receipt = {
+            "totalAmount": item_totalAmount,
+            "totalVAT": item_totalVAT,
+            "totalCityTax": item_totalCityTax,
+            "taxType": tax_type,
+            "merchantTin": merchant.merchant_tin,
+            "type": receiptParams["type"],
+            "items": items
+        }
+        body["receipts"].append(receipt)
 
     resp = requests.post(ebarimtSettings.base_url + "/rest/receipt", json=body)
     resp_data = resp.json()
@@ -252,4 +286,11 @@ def getProductTaxCode():
     if(resp.status_code != 200):
         frappe.throw('[Ebarimt] Бараа үйлчилгээний код авахад алдаа гарлаа.')
 
-    return resp.json()
+    msg = resp.json()
+
+    # Bug from ITC
+    for productCode in msg["data"]:
+        if(productCode["taxTypeName"] == 'NO_VAT'):
+            productCode["taxTypeName"] = 'NOT_VAT'
+
+    return msg
