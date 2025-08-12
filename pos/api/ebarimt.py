@@ -19,7 +19,8 @@ TAX_TYPES = [
 
 @frappe.whitelist()
 def get_merchant_info_by_regno(regNo: str):
-    resp = requests.get('https://api.ebarimt.mn/api/info/check/getTinInfo', params={'regNo': regNo})
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    resp = requests.get(f'{ebarimtSettings.ebarimt_url}/api/info/check/getTinInfo', params={'regNo': regNo})
 
     if(resp.status_code != 200):
         frappe.throw('Error while fetching metchant info')
@@ -29,7 +30,8 @@ def get_merchant_info_by_regno(regNo: str):
 
 @frappe.whitelist()
 def get_merchant_info_by_tin(tin: str):
-    resp = requests.get('https://api.ebarimt.mn/api/info/check/getInfo', params={'tin': tin})
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    resp = requests.get(f'{ebarimtSettings.ebarimt_url}/api/info/check/getInfo', params={'tin': tin})
 
     if(resp.status_code != 200):
         frappe.throw('Error while fetching metchant info')
@@ -37,7 +39,8 @@ def get_merchant_info_by_tin(tin: str):
     return resp.json()["data"]
 
 def get_customerTin(regNo: str):
-    resp = requests.get('https://api.ebarimt.mn/api/info/check/getTinInfo', {'regNo': regNo})
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    resp = requests.get(f'{ebarimtSettings.ebarimt_url}/api/info/check/getTinInfo', {'regNo': regNo})
 
     data = resp.json()
     if(resp.status_code != 200 or data["status"] != 200):
@@ -188,7 +191,8 @@ def submit_receipt(receiptParams, invoiceDoc):
     return doc
 
 def get_customerInfo(customerTin: str):
-    resp = requests.get('https://api.ebarimt.mn/api/info/check/getInfo', {'tin': customerTin})
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    resp = requests.get(f'{ebarimtSettings.ebarimt_url}/api/info/check/getInfo', {'tin': customerTin})
 
     data = resp.json()
     if(resp.status_code != 200 or data["status"] != 200):
@@ -287,7 +291,8 @@ def update_receipt(invoice_doc_name):
 
 @frappe.whitelist()
 def get_branch_codes():
-    resp = requests.get("https://api.ebarimt.mn/api/info/check/getBranchInfo")
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    resp = requests.get(f"{ebarimtSettings.ebarimt_url}/api/info/check/getBranchInfo")
 
     if(resp.status_code != 200):
         frappe.throw('[Ebarimt] Орон нутгийн кодыг авахад алдаа гарлаа.')
@@ -296,7 +301,8 @@ def get_branch_codes():
 
 @frappe.whitelist()
 def getProductTaxCode():
-    resp = requests.get("https://api.ebarimt.mn/api/receipt/receipt/getProductTaxCode")
+    ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    resp = requests.get(f"{ebarimtSettings.ebarimt_url}/api/receipt/receipt/getProductTaxCode")
 
     if(resp.status_code != 200):
         frappe.throw('[Ebarimt] Бараа үйлчилгээний код авахад алдаа гарлаа.')

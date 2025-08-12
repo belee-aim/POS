@@ -16,7 +16,7 @@ class EbarimtSettings(Document):
 
 		base_url: DF.Data
 		default_classification_code: DF.Data | None
-		info_url: DF.Data
+		ebarimt_url: DF.Data
 		lottery_threshold: DF.Int
 		nhat_account: DF.Link | None
 		noat_account: DF.Link

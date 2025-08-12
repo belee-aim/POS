@@ -7,7 +7,7 @@
  "field_order": [
   "api_urls_section",
   "base_url",
-  "info_url",
+  "ebarimt_url",
   "\u0442\u0430\u0442\u0432\u0430\u0440\u044b\u043d_\u0434\u0430\u043d\u0441\u0443\u0443\u0434_section",
   "noat_account",
   "column_break_ujrl",
@@ -23,13 +23,6 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Base URL",
-   "reqd": 1
-  },
-  {
-   "fieldname": "info_url",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Info URL",
    "reqd": 1
   },
   {
@@ -80,13 +73,20 @@
    "fieldname": "lottery_threshold",
    "fieldtype": "Int",
    "label": "\u0410\u043d\u0445\u0430\u0430\u0440\u0443\u0443\u043b\u0433\u0430 \u04e9\u0433\u0447 \u044d\u0445\u043b\u044d\u0445 \u0441\u0443\u0433\u0430\u043b\u0430\u0430\u043d\u044b \u0442\u043e\u043e"
+  },
+  {
+   "fieldname": "ebarimt_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Ebarimt URL",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-08 17:06:44.563905",
+ "modified": "2025-08-12 16:43:31.604020",
  "modified_by": "Administrator",
  "module": "Pos",
  "name": "Ebarimt Settings",
