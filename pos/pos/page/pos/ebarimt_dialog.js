@@ -47,7 +47,7 @@ ebarimt.Dialog = class {
                         }
 
                         frappe.call({
-                            method: 'pos.api.ebarimt.get_merchant_info',
+                            method: 'pos.api.ebarimt.get_merchant_info_by_regno',
                             args: {
                                 regNo: companyReg,
                             },

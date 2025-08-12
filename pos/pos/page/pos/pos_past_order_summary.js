@@ -465,20 +465,23 @@ erpnext.PointOfSale.PastOrderSummary = class {
 			});
 
 			ebarimt_data_container.append(`<div>ДДТД: ${ebarimt_data.id}</div>`);
-			switch(ebarimt_data.type) {
-				case "B2C_RECEIPT": {
-					ebarimt_data_container.append(`<div>Сугалааны дугаар: ${ebarimt_data.lottery}</div>`);
-					break;
-				}
-				case "B2B_RECEIPT": {
-					ebarimt_data_container.append(`<div class="customerName"></div>`);
-					fetch(`https://api.ebarimt.mn/api/info/check/getInfo?tin=${ebarimt_data.customerTin}`).then(resp => {
-						resp.json().then(customerData => {
-							this.$ebarimt_container.find('.customerName').html(`Байгууллага: ${customerData.data.name}`);
-						})
-					})
-					break;
-				}
+			ebarimt_data_container.append(`<div class="lottery"></div>`);
+			ebarimt_data_container.append(`<div class="customerName"></div>`);
+
+			if(ebarimt_data.type == "B2C_RECEIPT") {
+				this.$ebarimt_container.find('.lottery').html(`Сугалааны дугаар: ${ebarimt_data.lottery}`);
+			}
+
+			if(ebarimt_data.type.includes('B2B')) {
+					frappe.call({
+					method: 'pos.api.ebarimt.get_merchant_info_by_tin',
+					args: {
+						tin: ebarimt_data.customerTin,
+					},
+					callback: ({message}) => {
+						this.$ebarimt_container.find('.customerName').html(`Байгууллага: ${message.name}`);
+					}
+				})
 			}
 			ebarimt_data_container.append(`<div>Бүртгүүлэх дүн: ${ebarimt_data.totalAmount}</div>`);
 

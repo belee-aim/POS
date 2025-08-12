@@ -18,15 +18,23 @@ TAX_TYPES = [
 ]
 
 @frappe.whitelist()
-def get_merchant_info(regNo: str):
-    infoUrl = frappe.db.get_single_value("Ebarimt Settings", "info_url")
-
-    resp = requests.get(infoUrl, {'regno': regNo})
+def get_merchant_info_by_regno(regNo: str):
+    resp = requests.get('https://api.ebarimt.mn/api/info/check/getTinInfo', params={'regNo': regNo})
 
     if(resp.status_code != 200):
         frappe.throw('Error while fetching metchant info')
 
-    return resp.json()
+    tinInfo = resp.json()
+    return get_merchant_info_by_tin(tinInfo["data"])
+
+@frappe.whitelist()
+def get_merchant_info_by_tin(tin: str):
+    resp = requests.get('https://api.ebarimt.mn/api/info/check/getInfo', params={'tin': tin})
+
+    if(resp.status_code != 200):
+        frappe.throw('Error while fetching metchant info')
+
+    return resp.json()["data"]
 
 def get_customerTin(regNo: str):
     resp = requests.get('https://api.ebarimt.mn/api/info/check/getTinInfo', {'regNo': regNo})
