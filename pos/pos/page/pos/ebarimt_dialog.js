@@ -31,6 +31,14 @@ ebarimt.Dialog = class {
                             dialog.get_primary_btn().prop('disabled', true);
                         }
 
+                        if(type.includes("INVOICE")) {
+                            dialog.get_field('bankAccountNo').df.reqd = 1;
+                            dialog.get_field('bankAccountNo').df.hidden = 0;
+                        } else {
+                            dialog.get_field('bankAccountNo').df.reqd = 0;
+                            dialog.get_field('bankAccountNo').df.hidden = 1;
+                        }
+
                         dialog.refresh();
                     }
                 },
@@ -76,7 +84,13 @@ ebarimt.Dialog = class {
                     fieldname: 'companyName',
                     fieldtype: 'Data',
                     hidden: 1,
-                }
+                },
+                {
+                    label: 'Банкны данс',
+                    fieldname: 'bankAccountNo',
+                    fieldtype: 'Data',
+                    hidden: 1,
+                },
             ],
             primary_action_label: 'Баримт гаргах',
             primary_action: (values) => {
