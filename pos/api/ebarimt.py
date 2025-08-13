@@ -254,9 +254,10 @@ def return_receipt(invoice_doc_name):
         frappe.msgprint('[Ebarimt] Баримт буцаахад алдаа гарлаа.')
 
 @frappe.whitelist()
-def pay_invoice(invoice_doc_name):
+def pay_invoice(invoice_doc_name, payments):
     baseUrl = frappe.db.get_single_value("Ebarimt Settings", "base_url")
     invoiceData = json.loads(frappe.get_value("Ebarimt Receipt", invoice_doc_name, "data"))
+    paymentsData = json.loads(payments)
 
     if(invoiceData["type"].find("INVOICE") == -1):
         frappe.throw("[Ebarimt] Нэхэмжлэл биш байна.")
@@ -280,10 +281,10 @@ def pay_invoice(invoice_doc_name):
         "receipts": invoiceData["receipts"],
         "payments": [
             {
-                "code": "CASH",
-                "paidAmount": invoiceData["totalAmount"],
-                "status": "PAID",
-            }
+                "code": payment["code"].split(":")[0],
+                "paidAmount": payment["paidAmount"],
+                "status": payment["status"].split(":")[0],
+            } for payment in paymentsData
         ]
     }
 
@@ -299,7 +300,7 @@ def pay_invoice(invoice_doc_name):
 
         doc: EbarimtReceipt = frappe.new_doc("Ebarimt Receipt")
         doc.data = json.dumps(resp_data, indent=2)
-        doc.insert()
+        return doc.insert()
     except requests.exceptions.ConnectionError:
         frappe.msgprint('[Ebarimt] Нэхэмжлэлийг төлөхөд алдаа гарлаа')
 
