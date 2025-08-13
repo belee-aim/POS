@@ -55,6 +55,7 @@ def submit_receipt(receiptParams, invoiceDoc):
     invoiceDoc = json.loads(invoiceDoc)
     
     ebarimtSettings: EbarimtSettings = frappe.get_single("Ebarimt Settings")
+    ebarimtInfo = get_info()
 
     merchant: EbarimtMerchantInfo = None
     try:
@@ -96,7 +97,7 @@ def submit_receipt(receiptParams, invoiceDoc):
         "totalCityTax": totalCityTax,
         "districtCode": str(merchant.district_code).split(': ')[-1],
         "merchantTin": merchant.merchant_tin,
-        "posNo": merchant.pos_no,
+        "posNo": ebarimtInfo["posNo"],
         "type": receiptParams["type"],
         "billIdSuffix": f"POS-{date.today()}",
         "customerTin": None if receiptParams["type"].find('B2C') != -1 else get_customerTin(receiptParams["companyReg"]),
@@ -183,8 +184,6 @@ def submit_receipt(receiptParams, invoiceDoc):
         frappe.throw(f"Ebarimt unsuccessful: {resp_data['message']}")
         return None
     
-    get_info()
-
     doc: EbarimtReceipt = frappe.new_doc("Ebarimt Receipt")
     doc.data = json.dumps(resp_data, indent=2)
     doc.insert()
@@ -258,6 +257,7 @@ def pay_invoice(invoice_doc_name, payments):
     baseUrl = frappe.db.get_single_value("Ebarimt Settings", "base_url")
     invoiceData = json.loads(frappe.get_value("Ebarimt Receipt", invoice_doc_name, "data"))
     paymentsData = json.loads(payments)
+    ebarimtInfo = get_info()
 
     if(invoiceData["type"].find("INVOICE") == -1):
         frappe.throw("[Ebarimt] Нэхэмжлэл биш байна.")
@@ -274,7 +274,7 @@ def pay_invoice(invoice_doc_name, payments):
         "totalCityTax": invoiceData["totalCityTax"],
         "districtCode": invoiceData["districtCode"],
         "merchantTin": invoiceData["merchantTin"],
-        "posNo": invoiceData["posNo"],
+        "posNo": ebarimtInfo["posNo"],
         "type": invoice_type,
         "billIdSuffix": f"POS-{date.today()}",
         "customerTin": None if "customerTin" not in invoiceData else invoiceData["customerTin"],
@@ -308,6 +308,7 @@ def pay_invoice(invoice_doc_name, payments):
 def update_receipt(invoice_doc_name):
     baseUrl = frappe.db.get_single_value("Ebarimt Settings", "base_url")
     invoiceData = json.loads(frappe.get_value("Ebarimt Receipt", invoice_doc_name, "data"))
+    ebarimtInfo = get_info()
 
     for receipt in invoiceData["receipts"]:
         receipt["id"] = None
@@ -320,7 +321,7 @@ def update_receipt(invoice_doc_name):
         "totalCityTax": invoiceData["totalCityTax"],
         "districtCode": invoiceData["districtCode"],
         "merchantTin": invoiceData["merchantTin"],
-        "posNo": invoiceData["posNo"],
+        "posNo": ebarimtInfo["posNo"],
         "type": invoiceData["type"],
         "billIdSuffix": f"POS-{date.today()}",
         "customerTin": None if "customerTin" not in invoiceData else invoiceData["customerTin"],

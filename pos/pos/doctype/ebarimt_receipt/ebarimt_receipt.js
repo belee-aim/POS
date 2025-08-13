@@ -10,7 +10,7 @@ frappe.ui.form.on("Ebarimt Receipt", {
                     invoice_doc_name: frm.docname,
                 }
             });
-        }, __('Actions'));
+        });
         frm.add_custom_button(__('Баримт засварлах'), function() {
             frappe.call({
                 method: "pos.api.ebarimt.update_receipt",
@@ -18,7 +18,7 @@ frappe.ui.form.on("Ebarimt Receipt", {
                     invoice_doc_name: frm.docname,
                 }
             });
-        }, __('Actions'));
+        });
 
         const pay_invoice_dialog = new frappe.ui.Dialog({
 			title: __("Нэхэмжлэл төлөх"),
@@ -82,7 +82,7 @@ frappe.ui.form.on("Ebarimt Receipt", {
         if(data.type.includes("INVOICE")) {
             frm.add_custom_button(__('Нэхэмжлэл төлөх'), function() {
                 pay_invoice_dialog.show();
-            }, __('Actions'));
+            });
         }
 	},
 });

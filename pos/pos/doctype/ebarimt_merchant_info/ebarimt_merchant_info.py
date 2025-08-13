@@ -17,6 +17,5 @@ class EbarimtMerchantInfo(Document):
 		branch_no: DF.Data
 		district_code: DF.Literal[None]
 		merchant_tin: DF.Data
-		pos_no: DF.Data
 	# end: auto-generated types
 	pass
