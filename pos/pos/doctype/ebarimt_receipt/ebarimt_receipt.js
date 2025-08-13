@@ -19,5 +19,18 @@ frappe.ui.form.on("Ebarimt Receipt", {
                 }
             });
         }, __('Actions'));
+
+        const data = JSON.parse(frm.doc.data);
+        if(data.type.includes("INVOICE")) {
+
+            frm.add_custom_button(__('Нэхэмжлэл төлөх'), function() {
+                frappe.call({
+                    method: "pos.api.ebarimt.pay_invoice",
+                    args: {
+                        invoice_doc_name: frm.docname,
+                    }
+                });
+            }, __('Actions'));
+        }
 	},
 });
