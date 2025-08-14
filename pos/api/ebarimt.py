@@ -99,6 +99,7 @@ def submit_receipt(receiptParams, invoiceDoc):
         "merchantTin": merchant.merchant_tin,
         "posNo": ebarimtInfo["posNo"],
         "type": receiptParams["type"],
+        "reportMonth": None if (receiptParams["type"].find('B2B') == -1 or "reportMonth" not in receiptParams ) else receiptParams["reportMonth"],
         "billIdSuffix": f"POS-{date.today()}",
         "customerTin": None if receiptParams["type"].find('B2C') != -1 else get_customerTin(receiptParams["companyReg"]),
         "payments": None if receiptParams["type"].find('INVOICE') != -1 else [
@@ -278,6 +279,7 @@ def pay_invoice(invoice_doc_name, payments):
         "type": invoice_type,
         "billIdSuffix": f"POS-{date.today()}",
         "customerTin": None if "customerTin" not in invoiceData else invoiceData["customerTin"],
+        "reportMonth": None if "reportMonth" not in invoiceData else invoiceData["reportMonth"],
         "receipts": invoiceData["receipts"],
         "payments": [
             {
@@ -325,6 +327,7 @@ def update_receipt(invoice_doc_name):
         "type": invoiceData["type"],
         "billIdSuffix": f"POS-{date.today()}",
         "customerTin": None if "customerTin" not in invoiceData else invoiceData["customerTin"],
+        "reportMonth": None if "reportMonth" not in invoiceData else invoiceData["reportMonth"],
         "receipts": invoiceData["receipts"],
         "payments": invoiceData["payments"],
     }

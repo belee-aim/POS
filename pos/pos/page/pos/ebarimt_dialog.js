@@ -22,6 +22,9 @@ ebarimt.Dialog = class {
                             dialog.get_field('companyReg').df.hidden = 1;
                             dialog.get_field('companyName').df.hidden = 1;
                             dialog.get_primary_btn().prop('disabled', false);
+
+                            dialog.get_field('reportMonthCheck').df.hidden = 1;
+                            dialog.set_value('reportMonthCheck', 0);
                         } else {
                             dialog.set_value('companyReg', '');
                             dialog.set_value('companyName', '');
@@ -29,6 +32,9 @@ ebarimt.Dialog = class {
                             dialog.get_field('companyReg').df.hidden = 0;
                             dialog.get_field('companyName').df.hidden = 0;
                             dialog.get_primary_btn().prop('disabled', true);
+
+                            dialog.get_field('reportMonthCheck').df.hidden = 0;
+                            dialog.set_value('reportMonthCheck', 0);
                         }
 
                         if(type.includes("INVOICE")) {
@@ -89,6 +95,28 @@ ebarimt.Dialog = class {
                     label: 'Банкны данс',
                     fieldname: 'bankAccountNo',
                     fieldtype: 'Data',
+                    hidden: 1,
+                },
+                {
+                    label: 'Өмнөх сарын баримт нөхөж оруулах',
+                    fieldname: 'reportMonthCheck',
+                    fieldtype: 'Check',
+                    hidden: 1,
+                    change: () => {
+                        let check = dialog.get_value('reportMonthCheck');
+                        dialog.set_value('reportMonth', "");
+                        if(check) {
+                            dialog.get_field('reportMonth').df.hidden = 0;
+                        } else {
+                            dialog.get_field('reportMonth').df.hidden = 1;
+                        }
+                        dialog.refresh();
+                    },
+                },
+                {
+                    label: 'Нөхөж оруулах огноо',
+                    fieldname: 'reportMonth',
+                    fieldtype: 'Date',
                     hidden: 1,
                 },
             ],
