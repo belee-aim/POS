@@ -14,6 +14,8 @@ class EbarimtReceipt(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		customer_register: DF.Data | None
 		data: DF.JSON | None
+		merchant_register: DF.Data | None
 	# end: auto-generated types
 	pass

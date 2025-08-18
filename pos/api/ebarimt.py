@@ -26,6 +26,9 @@ def get_merchant_info_by_regno(regNo: str):
         frappe.throw('Error while fetching metchant info')
 
     tinInfo = resp.json()
+    if(tinInfo["status"] != 200):
+        return None
+    
     return get_merchant_info_by_tin(tinInfo["data"])
 
 @frappe.whitelist()
@@ -64,6 +67,8 @@ def submit_receipt(receiptParams, invoiceDoc):
     except Exception as err:
         frappe.throw('Merchant info not found')
         return None
+    
+    merchant_tin = get_customerTin(merchant.merchant_register)
 
     vat = None
     nhat = None
@@ -96,7 +101,7 @@ def submit_receipt(receiptParams, invoiceDoc):
         "totalVAT": totalVat,
         "totalCityTax": totalCityTax,
         "districtCode": str(merchant.district_code).split(': ')[-1],
-        "merchantTin": merchant.merchant_tin,
+        "merchantTin": merchant_tin,
         "posNo": ebarimtInfo["posNo"],
         "type": receiptParams["type"],
         "reportMonth": None if (receiptParams["type"].find('B2B') == -1 or "reportMonth" not in receiptParams ) else receiptParams["reportMonth"],
@@ -176,8 +181,6 @@ def submit_receipt(receiptParams, invoiceDoc):
         }
         body["receipts"].append(receipt)
 
-    # print(json.dumps(body, indent=2))
-
     resp = requests.post(ebarimtSettings.base_url + "/rest/receipt", json=body)
     resp_data = resp.json()
 
@@ -187,6 +190,9 @@ def submit_receipt(receiptParams, invoiceDoc):
     
     doc: EbarimtReceipt = frappe.new_doc("Ebarimt Receipt")
     doc.data = json.dumps(resp_data, indent=2)
+    doc.merchant_register = merchant.merchant_register
+    if("companyReg" in receiptParams):
+        doc.customer_register = receiptParams["companyReg"]
     doc.insert()
 
     return doc
@@ -214,9 +220,10 @@ def generate_qrcode_data_url(qrData):
 @frappe.whitelist()
 def print_format_data(receiptName):
     receipt_data = json.loads(frappe.db.get_value("Ebarimt Receipt", receiptName, "data"))
-    # receipt_data
+    receipt_data["merchant_register"] = frappe.db.get_value("Ebarimt Receipt", receiptName, "merchant_register")
+    receipt_data["customer_register"] = frappe.db.get_value("Ebarimt Receipt", receiptName, "customer_register")
 
-    if(receipt_data["type"] == "B2B_RECEIPT"):
+    if(receipt_data["type"].find('B2B') != -1):
         customerInfo = get_customerInfo(receipt_data["customerTin"])
         receipt_data["customerName"] = customerInfo["name"]
     receipt_data["qrImage"] = generate_qrcode_data_url(receipt_data["qrData"])
@@ -256,6 +263,7 @@ def return_receipt(invoice_doc_name):
 @frappe.whitelist()
 def pay_invoice(invoice_doc_name, payments):
     baseUrl = frappe.db.get_single_value("Ebarimt Settings", "base_url")
+    invoice: EbarimtReceipt = frappe.get_doc("Ebarimt Receipt", invoice_doc_name)
     invoiceData = json.loads(frappe.get_value("Ebarimt Receipt", invoice_doc_name, "data"))
     paymentsData = json.loads(payments)
     ebarimtInfo = get_info()
@@ -302,6 +310,8 @@ def pay_invoice(invoice_doc_name, payments):
 
         doc: EbarimtReceipt = frappe.new_doc("Ebarimt Receipt")
         doc.data = json.dumps(resp_data, indent=2)
+        doc.merchant_register = invoice.merchant_register
+        doc.customer_register = invoice.customer_register
         return doc.insert()
     except requests.exceptions.ConnectionError:
         frappe.msgprint('[Ebarimt] Нэхэмжлэлийг төлөхөд алдаа гарлаа')

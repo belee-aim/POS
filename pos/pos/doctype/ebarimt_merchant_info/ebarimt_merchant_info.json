@@ -6,7 +6,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "merchant_tin",
+  "merchant_register",
+  "merchant_name",
   "branch_no",
   "district_code"
  ],
@@ -19,23 +20,28 @@
    "reqd": 1
   },
   {
-   "fieldname": "merchant_tin",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "\u0411\u0430\u0433\u0446 \u0431\u0430\u0440\u0438\u043c\u0442 \u043e\u043b\u0433\u043e\u0433\u0447\u0438\u0439\u043d \u0422\u0422\u0414 (merchantTIN)",
-   "reqd": 1
-  },
-  {
    "fieldname": "district_code",
    "fieldtype": "Select",
    "label": "\u0411\u0430\u0440\u0438\u043c\u0442 \u0445\u044d\u0432\u043b\u044d\u0441\u044d\u043d \u043e\u0440\u043e\u043d \u043d\u0443\u0442\u0433\u0438\u0439\u043d \u043a\u043e\u0434",
    "reqd": 1
+  },
+  {
+   "fieldname": "merchant_register",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u0411\u0430\u0433\u0446 \u0431\u0430\u0440\u0438\u043c\u0442 \u043e\u043b\u0433\u043e\u0433\u0447\u0438\u0439\u043d \u0440\u0435\u0433\u0438\u0441\u0442\u0440",
+   "reqd": 1
+  },
+  {
+   "fieldname": "merchant_name",
+   "fieldtype": "Data",
+   "label": "\u0411\u0430\u0440\u0438\u043c\u0442 \u043e\u043b\u0433\u043e\u0433\u0447\u0438\u0439\u043d \u043d\u044d\u0440"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-13 12:56:18.502678",
+ "modified": "2025-08-18 16:39:55.526409",
  "modified_by": "Administrator",
  "module": "Pos",
  "name": "Ebarimt Merchant Info",
