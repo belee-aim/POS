@@ -870,10 +870,33 @@ erpnext.PointOfSale.Controller = class {
 			.catch((e) => console.log(e));
 	}
 
+	async remove_zero_quantity_items() {
+		const zero_quantity_items = this.frm.doc.items.filter(item => item.qty === 0);
+		try {
+			frappe.dom.freeze();
+			await Promise.all(zero_quantity_items.map(async (item) =>  {
+				frappe.model.clear_doc(item.doctype, item.name);
+				this.update_cart_html(item, true);
+			}));
+		} catch(err) {
+			console.log(err);
+		} finally {
+			this.item_details.toggle_item_details_section(null);
+			frappe.dom.unfreeze();
+		}
+	}
+
 	async save_and_checkout() {
 		if (this.frm.is_dirty()) {
 			let save_error = false;
-			await this.frm.save(null, null, null, () => (save_error = true));
+
+			await this.remove_zero_quantity_items();
+			if(!this.frm.doc.items || this.frm.doc.items.length === 0) {
+				save_error = true;
+			} else {
+				await this.frm.save(null, null, null, () => (save_error = true));
+			}
+
 			// only move to payment section if save is successful
 			!save_error && this.payment.checkout();
 			// show checkout button on error

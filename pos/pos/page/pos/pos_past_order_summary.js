@@ -444,7 +444,6 @@ erpnext.PointOfSale.PastOrderSummary = class {
 
 		frappe.db.get_doc("Ebarimt Receipt", doc.custom_ebarimt_receipt).then(ebarimt_receipt => {
 			const ebarimt_data = JSON.parse(ebarimt_receipt.data);
-			console.log(ebarimt_data);
 
 			this.$ebarimt_container.html('');
 
