@@ -101,7 +101,7 @@ def submit_receipt(receiptParams, invoiceDoc):
         "totalVAT": totalVat,
         "totalCityTax": totalCityTax,
         "districtCode": str(merchant.district_code).split(': ')[-1],
-        "merchantTin": merchant_tin,
+        "merchantTin": f"{merchant_tin}",
         "posNo": ebarimtInfo["posNo"],
         "type": receiptParams["type"],
         "reportMonth": None if (receiptParams["type"].find('B2B') == -1 or "reportMonth" not in receiptParams ) else receiptParams["reportMonth"],
@@ -174,7 +174,7 @@ def submit_receipt(receiptParams, invoiceDoc):
             "totalVAT": item_totalVAT,
             "totalCityTax": item_totalCityTax,
             "taxType": tax_type,
-            "merchantTin": merchant.merchant_tin,
+            "merchantTin": f"{merchant_tin}",
             # "bankAccountNo": None if receiptParams["type"].find('RECEIPT') != -1 else "499037985",
             "type": receiptParams["type"],
             "items": items
