@@ -29,7 +29,7 @@ def get_merchant_info_by_regno(regNo: str):
     if(tinInfo["status"] != 200):
         return None
     
-    return get_merchant_info_by_tin(tinInfo["data"])
+    return get_merchant_info_by_tin(str(tinInfo["data"]))
 
 @frappe.whitelist()
 def get_merchant_info_by_tin(tin: str):
@@ -50,7 +50,7 @@ def get_customerTin(regNo: str):
         raise(Exception("Error get_customerTin"))
         # frappe.throw('Error while fetching metchant info')
 
-    return data["data"]
+    return str(data["data"])
 
 @frappe.whitelist()
 def submit_receipt(receiptParams, invoiceDoc):
