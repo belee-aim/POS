@@ -128,6 +128,8 @@ erpnext.PointOfSale.Payment = class {
 				// clicked one is not selected then select it
 				mode_clicked.addClass("border-primary");
 				me.$payment_mode_details.find(`.${mode}.mode-of-payment-detail`).css("display", "flex");
+				const payment_module = me[`${mode}_module`];
+				payment_module.set_remaining_amount(me.get_remaining_amount());
 			}
 		});
 
@@ -260,6 +262,15 @@ erpnext.PointOfSale.Payment = class {
 		if (!current_value && remaining_amount > 0 && this.selected_mode) {
 			this.selected_mode.set_value(remaining_amount);
 		}
+	}
+
+	get_remaining_amount() {
+		const doc = this.events.get_frm().doc;
+		const grand_total = cint(frappe.sys_defaults.disable_rounded_total)
+			? doc.grand_total
+			: doc.rounded_total;
+		const remaining_amount = grand_total - doc.paid_amount;
+		return remaining_amount;
 	}
 
 	attach_shortcuts() {

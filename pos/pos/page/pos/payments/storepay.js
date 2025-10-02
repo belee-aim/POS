@@ -170,4 +170,12 @@ Payments.Storepay = class {
         components.forEach(c => c.css("display", "none"));
         component.css("display", display ?? "block");
     }
+
+    set_remaining_amount(remaining_amount) {
+        const current_value = frappe.model.get_value(this.payment.doctype, this.payment.name, "amount");
+        
+        if(current_value === 0) {
+            this.amountControl.set_value(remaining_amount);
+        }
+    }
 }

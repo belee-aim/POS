@@ -40,4 +40,12 @@ Payments.DefaultPayment = class {
         this.amountControl.toggle_label(false);
         this.amountControl.set_value(this.payment.amount);
     }
+
+    set_remaining_amount(remaining_amount) {
+        const current_value = frappe.model.get_value(this.payment.doctype, this.payment.name, "amount");
+        
+        if(current_value === 0) {
+            this.amountControl.set_value(remaining_amount);
+        }
+    }
 }
