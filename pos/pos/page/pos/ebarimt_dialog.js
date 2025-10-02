@@ -141,6 +141,11 @@ ebarimt.Dialog = class {
                     }
                 });
             },
+            secondary_action_label: 'Түр баримт гаргах',
+            secondary_action: () => {
+                events.onInvoiceSubmitted();
+                dialog.hide();
+            },
         });
 
         this.dialog = dialog;
