@@ -143,6 +143,16 @@ def submit_receipt(receiptParams, invoiceDoc):
             barcode = item["barcode"]
             barcodeType = frappe.db.get_value("Item Barcode", filters={"barcode": barcode}, fieldname="barcode_type")
 
+            item_vat = get_item_wise_tax(vat, item["item_code"])
+            item_nhat = get_item_wise_tax(nhat, item["item_code"])
+
+            item_amount = item["amount"]
+
+            if(vat and vat["included_in_print_rate"] == 0):
+                item_amount += item_vat
+            if(nhat and nhat["included_in_print_rate"] == 0):
+                item_amount += item_nhat
+
             items.append({
                 "name": item["item_name"],
                 "barCode": barcode,
@@ -152,9 +162,9 @@ def submit_receipt(receiptParams, invoiceDoc):
                 "measureUnit": item["uom"],
                 "qty": item["qty"],
                 "unitPrice": item["rate"],
-                "totalAmount": item["amount"],
-                "totalVAT": get_item_wise_tax(vat, item["item_code"]),
-                "totalCityTax": get_item_wise_tax(nhat, item["item_code"]),
+                "totalAmount": item_amount,
+                "totalVAT": item_vat,
+                "totalCityTax": item_nhat,
             })
 
         if(len(items) == 0):
