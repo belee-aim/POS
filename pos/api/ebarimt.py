@@ -81,9 +81,11 @@ def submit_receipt(receiptParams, invoiceDoc):
     if(vat == None):
         frappe.throw("[Ebarimt] НӨАТ-ын данс олдсонгүй. Ebarimt-н тохиргоонд оруулна уу")
     
+    discount = invoiceDoc["additional_discount_percentage"]
+    
     totalAmount = invoiceDoc["grand_total"]
-    totalVat = vat["tax_amount"]
-    totalCityTax = 0 if nhat is None else nhat["tax_amount"]
+    totalVat = vat["tax_amount_after_discount_amount"]
+    totalCityTax = 0 if nhat is None else nhat["tax_amount_after_discount_amount"]
 
     def get_item_wise_tax(tax, item):
         if(tax == None):
@@ -146,7 +148,7 @@ def submit_receipt(receiptParams, invoiceDoc):
             item_vat = get_item_wise_tax(vat, item["item_code"])
             item_nhat = get_item_wise_tax(nhat, item["item_code"])
 
-            item_amount = item["amount"]
+            item_amount = item["amount"] * (100 - discount) / 100
 
             if(vat and vat["included_in_print_rate"] == 0):
                 item_amount += item_vat
@@ -161,7 +163,7 @@ def submit_receipt(receiptParams, invoiceDoc):
                 "taxProductCode": None if tax_type == "VAT_ABLE" else frappe.db.get_value("Item", item["item_code"], "custom_taxproductcode").split(':')[0],
                 "measureUnit": item["uom"],
                 "qty": item["qty"],
-                "unitPrice": item["rate"],
+                "unitPrice": item_amount / item["qty"],
                 "totalAmount": item_amount,
                 "totalVAT": item_vat,
                 "totalCityTax": item_nhat,
