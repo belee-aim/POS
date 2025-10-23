@@ -202,6 +202,7 @@ def submit_receipt(receiptParams, invoiceDoc):
     
     doc: EbarimtReceipt = frappe.new_doc("Ebarimt Receipt")
     doc.data = json.dumps(resp_data, indent=2)
+    doc.state = "Илгээгдсэн"
     doc.merchant_register = merchant.merchant_register
     if("companyReg" in receiptParams):
         doc.customer_register = receiptParams["companyReg"]
@@ -267,9 +268,13 @@ def return_receipt(invoice_doc_name):
         if(req.status_code != 200):
             frappe.throw('[Ebarimt] Баримт буцаалт амжилтгүй.')
 
+        frappe.enqueue(method=send_data)
+
+        frappe.set_value("Ebarimt Receipt", invoice_doc_name, "state", "Буцаагдсан")
         frappe.msgprint('[Ebarimt] Баримтыг амжилттай буцаалаа.')
+
         return None
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError as e:
         frappe.msgprint('[Ebarimt] Баримт буцаахад алдаа гарлаа.')
 
 @frappe.whitelist()
@@ -322,6 +327,7 @@ def pay_invoice(invoice_doc_name, payments):
 
         doc: EbarimtReceipt = frappe.new_doc("Ebarimt Receipt")
         doc.data = json.dumps(resp_data, indent=2)
+        doc.state = "Илгээгдсэн"
         doc.merchant_register = invoice.merchant_register
         doc.customer_register = invoice.customer_register
         return doc.insert()
