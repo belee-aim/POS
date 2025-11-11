@@ -18,5 +18,7 @@ class EbarimtMerchantInfo(Document):
 		district_code: DF.Literal[None]
 		merchant_name: DF.Data | None
 		merchant_register: DF.Data
+		nhat_account: DF.Link | None
+		noat_account: DF.Link
 	# end: auto-generated types
 	pass

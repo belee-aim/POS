@@ -73,9 +73,9 @@ def submit_receipt(receiptParams, invoiceDoc):
     vat = None
     nhat = None
     for tax in invoiceDoc["taxes"]:
-        if(tax["account_head"] == ebarimtSettings.noat_account):
+        if(tax["account_head"] == merchant.noat_account):
             vat = tax
-        if(tax["account_head"] == ebarimtSettings.nhat_account):
+        if(tax["account_head"] == merchant.nhat_account):
             nhat = tax
 
     if(vat == None):

@@ -18,7 +18,5 @@ class EbarimtSettings(Document):
 		default_classification_code: DF.Data | None
 		ebarimt_url: DF.Data
 		lottery_threshold: DF.Int
-		nhat_account: DF.Link | None
-		noat_account: DF.Link
 	# end: auto-generated types
 	pass
