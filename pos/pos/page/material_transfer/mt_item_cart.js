@@ -36,6 +36,7 @@ erpnext.MaterialTransfer.ItemCart = class {
 		`);
 
 		const me = this;
+		const company = this.company;
 
 		this.warehouse_field = frappe.ui.form.make_control({
 			df: {
@@ -44,12 +45,15 @@ erpnext.MaterialTransfer.ItemCart = class {
 				options: "Warehouse",
 				placeholder: __("Select source warehouse (transfer from)"),
 				get_query: function () {
-					return {
-						filters: {
-							is_group: 0,
-							disabled: 0,
-						},
+					const filters = {
+						is_group: 0,
+						disabled: 0,
 					};
+					// Filter by company if available
+					if (company) {
+						filters.company = company;
+					}
+					return { filters };
 				},
 				onchange: function () {
 					if (this.value) {
@@ -65,6 +69,13 @@ erpnext.MaterialTransfer.ItemCart = class {
 		this.warehouse_field.toggle_label(false);
 	}
 
+	set_company(company) {
+		this.company = company;
+		console.log("Setting company filter:", company);
+		// Recreate warehouse selector with new company filter
+		this.make_warehouse_selector();
+	}
+
 	set_to_warehouse(warehouse) {
 		this.to_warehouse = warehouse;
 		this.update_warehouse_display();
@@ -74,8 +85,9 @@ erpnext.MaterialTransfer.ItemCart = class {
 		// Update display after warehouse selection
 		if (this.from_warehouse) {
 			const warehouse_name = this.from_warehouse;
+			this.$warehouse_section.find(".warehouse-display").remove();
 			this.$warehouse_section.find(".warehouse-field").after(`
-				<div class="warehouse-display" style="display: none;">
+				<div class="warehouse-display">
 					<div class="warehouse-info">
 						<div class="warehouse-icon">
 							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -110,7 +122,6 @@ erpnext.MaterialTransfer.ItemCart = class {
 					</div>
 					<div class="cart-items-section"></div>
 					<div class="cart-totals-section"></div>
-					<div class="numpad-section"></div>
 				</div>
 			</div>`
 		);
@@ -119,7 +130,6 @@ erpnext.MaterialTransfer.ItemCart = class {
 
 		this.make_cart_totals_section();
 		this.make_cart_items_section();
-		this.make_cart_numpad();
 	}
 
 	make_cart_items_section() {
@@ -145,44 +155,7 @@ erpnext.MaterialTransfer.ItemCart = class {
 				<div>${__("Total Quantity")}</div>
 				<div>0</div>
 			</div>
-			<div class="checkout-btn">${__("Request Material")}</div>
-			<div class="edit-cart-btn">${__("Edit List")}</div>`
-		);
-	}
-
-	make_cart_numpad() {
-		this.$numpad_section = this.$component.find(".numpad-section");
-
-		this.number_pad = new erpnext.PointOfSale.NumberPad({
-			wrapper: this.$numpad_section,
-			events: {
-				numpad_event: this.on_numpad_event.bind(this),
-			},
-			cols: 5,
-			keys: [
-				[1, 2, 3, "Quantity"],
-				[4, 5, 6, ""],
-				[7, 8, 9, ""],
-				[".", 0, "Delete", "Remove"],
-			],
-			css_classes: [
-				["", "", "", "col-span-2"],
-				["", "", "", "col-span-2"],
-				["", "", "", "col-span-2"],
-				["", "", "", "col-span-2 remove-btn"],
-			],
-			fieldnames_map: { Quantity: "qty" },
-		});
-
-		this.$numpad_section.prepend(
-			`<div class="numpad-totals">
-				<span class="numpad-item-qty-total"></span>
-				<span class="numpad-grand-total"></span>
-			</div>`
-		);
-
-		this.$numpad_section.append(
-			`<div class="numpad-btn checkout-btn" data-button-value="checkout">${__("Request Material")}</div>`
+			<div class="checkout-btn">${__("Request Material")}</div>`
 		);
 	}
 
@@ -208,44 +181,9 @@ erpnext.MaterialTransfer.ItemCart = class {
 			if ($(this).attr("style")?.indexOf("--blue-500") == -1) return;
 			await me.events.submit_request();
 		});
-
-		this.$totals_section.on("click", ".edit-cart-btn", () => {
-			this.toggle_checkout_btn(true);
-		});
 	}
 
 	attach_shortcuts() {
-		for (let row of this.number_pad.keys) {
-			for (let btn of row) {
-				if (typeof btn !== "string") continue;
-
-				let shortcut_key = `ctrl+${frappe.scrub(String(btn))[0]}`;
-				if (btn === "Delete") shortcut_key = "ctrl+backspace";
-				if (btn === "Remove") shortcut_key = "shift+ctrl+backspace";
-				if (btn === ".") shortcut_key = "ctrl+>";
-
-				const fieldname = this.number_pad.fieldnames[btn]
-					? this.number_pad.fieldnames[btn]
-					: typeof btn === "string"
-					? frappe.scrub(btn)
-					: btn;
-
-				let shortcut_label = shortcut_key.split("+").map(frappe.utils.to_title_case).join("+");
-				shortcut_label = frappe.utils.is_mac() ? shortcut_label.replace("Ctrl", "⌘") : shortcut_label;
-
-				this.$numpad_section
-					.find(`.numpad-btn[data-button-value="${fieldname}"]`)
-					.attr("title", shortcut_label);
-
-				frappe.ui.keys.on(`${shortcut_key}`, () => {
-					const cart_is_visible = this.$component.is(":visible");
-					if (cart_is_visible && this.item_is_selected && this.$numpad_section.is(":visible")) {
-						this.$numpad_section.find(`.numpad-btn[data-button-value="${fieldname}"]`).click();
-					}
-				});
-			}
-		}
-
 		const ctrl_label = frappe.utils.is_mac() ? "⌘" : "Ctrl";
 		this.$component.find(".checkout-btn").attr("title", `${ctrl_label}+Enter`);
 
@@ -291,14 +229,6 @@ erpnext.MaterialTransfer.ItemCart = class {
 		this.$totals_section
 			.find(".grand-total-container")
 			.html(`<div>${__("Total Quantity")}</div><div>${total_qty}</div>`);
-
-		this.$numpad_section
-			.find(".numpad-item-qty-total")
-			.html(`<div>${__("Total Items")}: <span>${total_items}</span></div>`);
-
-		this.$numpad_section
-			.find(".numpad-grand-total")
-			.html(`<div>${__("Total Quantity")}: <span>${total_qty}</span></div>`);
 	}
 
 	get_cart_item({ item_code }) {
@@ -321,8 +251,6 @@ erpnext.MaterialTransfer.ItemCart = class {
 	}
 
 	render_cart_item(item_data, $item_to_update) {
-		const me = this;
-
 		if (!$item_to_update.length) {
 			this.$cart_items_wrapper.append(
 				`<div class="cart-item-wrapper" data-item-code="${escape(item_data.item_code)}"></div>
@@ -376,16 +304,6 @@ erpnext.MaterialTransfer.ItemCart = class {
 		$($img).parent().replaceWith(`<div class="item-image item-abbr">${item_abbr}</div>`);
 	}
 
-	toggle_checkout_btn(show_checkout) {
-		if (show_checkout) {
-			this.$totals_section.find(".checkout-btn").css("display", "flex");
-			this.$totals_section.find(".edit-cart-btn").css("display", "none");
-		} else {
-			this.$totals_section.find(".checkout-btn").css("display", "none");
-			this.$totals_section.find(".edit-cart-btn").css("display", "flex");
-		}
-	}
-
 	highlight_checkout_btn(toggle) {
 		if (toggle) {
 			this.$cart_container.find(".checkout-btn").css({
@@ -409,98 +327,6 @@ erpnext.MaterialTransfer.ItemCart = class {
 		no_of_cart_items === 0 && !$no_item_element.length && this.make_no_items_placeholder();
 	}
 
-	on_numpad_event($btn) {
-		const current_action = $btn.attr("data-button-value");
-		const action_is_field_edit = ["qty"].includes(current_action);
-		const action_is_pressed_twice = this.prev_action === current_action;
-		const first_click_event = !this.prev_action;
-		const field_to_edit_changed = this.prev_action && this.prev_action != current_action;
-
-		if (action_is_field_edit) {
-			this.highlight_numpad_btn($btn, current_action);
-
-			if (first_click_event || field_to_edit_changed) {
-				this.prev_action = current_action;
-			} else if (action_is_pressed_twice) {
-				this.prev_action = undefined;
-			}
-			this.numpad_value = "";
-		} else if (current_action === "checkout") {
-			this.prev_action = undefined;
-			this.toggle_item_highlight();
-			this.events.numpad_event(undefined, current_action);
-			return;
-		} else if (current_action === "remove") {
-			this.prev_action = undefined;
-			this.toggle_item_highlight();
-			this.events.numpad_event(undefined, current_action);
-			return;
-		} else {
-			this.numpad_value =
-				current_action === "delete"
-					? this.numpad_value.slice(0, -1)
-					: this.numpad_value + current_action;
-			this.numpad_value = this.numpad_value || 0;
-		}
-
-		const first_click_event_is_not_field_edit = !action_is_field_edit && first_click_event;
-
-		if (first_click_event_is_not_field_edit) {
-			frappe.show_alert({
-				indicator: "red",
-				message: __("Please select a field to edit from numpad"),
-			});
-			frappe.utils.play_sound("error");
-			return;
-		}
-
-		this.events.numpad_event(this.numpad_value, this.prev_action);
-	}
-
-	highlight_numpad_btn($btn, curr_action) {
-		const curr_action_is_highlighted = $btn.hasClass("highlighted-numpad-btn");
-		const curr_action_is_action = ["qty", "done"].includes(curr_action);
-
-		if (!curr_action_is_highlighted) {
-			$btn.addClass("highlighted-numpad-btn");
-		}
-		if (this.prev_action === curr_action && curr_action_is_highlighted) {
-			$btn.removeClass("highlighted-numpad-btn");
-		}
-		if (this.prev_action && this.prev_action !== curr_action && curr_action_is_action) {
-			const prev_btn = $(`[data-button-value='${this.prev_action}']`);
-			prev_btn.removeClass("highlighted-numpad-btn");
-		}
-		if (!curr_action_is_action || curr_action === "done") {
-			setTimeout(() => {
-				$btn.removeClass("highlighted-numpad-btn");
-			}, 200);
-		}
-	}
-
-	toggle_numpad(show) {
-		if (show) {
-			this.$totals_section.css("display", "none");
-			this.$numpad_section.css("display", "flex");
-		} else {
-			this.$totals_section.css("display", "flex");
-			this.$numpad_section.css("display", "none");
-		}
-		this.reset_numpad();
-	}
-
-	reset_numpad() {
-		this.numpad_value = "";
-		this.prev_action = undefined;
-		this.$numpad_section.find(".highlighted-numpad-btn").removeClass("highlighted-numpad-btn");
-	}
-
-	toggle_numpad_field_edit(fieldname) {
-		if (["qty"].includes(fieldname)) {
-			this.$numpad_section.find(`[data-button-value="${fieldname}"]`).click();
-		}
-	}
-
 	clear_cart() {
 		this.$cart_items_wrapper.html("");
 		this.make_no_items_placeholder();
@@ -510,5 +336,14 @@ erpnext.MaterialTransfer.ItemCart = class {
 
 	toggle_component(show) {
 		show ? this.$component.css("display", "flex") : this.$component.css("display", "none");
+	}
+
+	// These methods are called from controller but we don't need numpad
+	toggle_numpad(show) {
+		// No-op - no numpad in material transfer
+	}
+
+	toggle_numpad_field_edit(fieldname) {
+		// No-op - no numpad in material transfer
 	}
 };

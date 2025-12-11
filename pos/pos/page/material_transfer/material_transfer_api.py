@@ -29,6 +29,15 @@ def get_pos_profile_warehouse(pos_profile):
 
 
 @frappe.whitelist()
+def get_pos_profile_data(pos_profile):
+	"""Get warehouse and company from POS Profile"""
+	if not pos_profile:
+		return None
+	data = frappe.db.get_value("POS Profile", pos_profile, ["warehouse", "company"], as_dict=True)
+	return data
+
+
+@frappe.whitelist()
 def get_items(start=0, page_length=40, item_group=None, search_term="", from_warehouse=None, to_warehouse=None):
 	"""Get items with stock information for both warehouses"""
 	result = []

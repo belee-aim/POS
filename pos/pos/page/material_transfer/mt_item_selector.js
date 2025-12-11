@@ -1,5 +1,3 @@
-import onScan from "onscan.js";
-
 erpnext.MaterialTransfer.ItemSelector = class {
 	constructor({ wrapper, events }) {
 		this.wrapper = wrapper;
@@ -213,45 +211,6 @@ erpnext.MaterialTransfer.ItemSelector = class {
 
 	bind_events() {
 		const me = this;
-		window.onScan = onScan;
-
-		onScan.decodeKeyEvent = function (oEvent) {
-			var iCode = this._getNormalizedKeyNum(oEvent);
-			switch (true) {
-				case iCode >= 48 && iCode <= 90:
-				case iCode >= 106 && iCode <= 111:
-				case (iCode >= 160 && iCode <= 164) || iCode == 170:
-				case iCode >= 186 && iCode <= 194:
-				case iCode >= 219 && iCode <= 222:
-				case iCode == 32:
-					if (oEvent.key !== undefined && oEvent.key !== "") {
-						return oEvent.key;
-					}
-					var sDecoded = String.fromCharCode(iCode);
-					switch (oEvent.shiftKey) {
-						case false:
-							sDecoded = sDecoded.toLowerCase();
-							break;
-						case true:
-							sDecoded = sDecoded.toUpperCase();
-							break;
-					}
-					return sDecoded;
-				case iCode >= 96 && iCode <= 105:
-					return 0 + (iCode - 96);
-			}
-			return "";
-		};
-
-		onScan.attachTo(document, {
-			onScan: (sScancode) => {
-				if (this.search_field && this.$component.is(":visible")) {
-					this.search_field.set_focus();
-					this.set_search_value(sScancode);
-					this.barcode_scanned = true;
-				}
-			},
-		});
 
 		this.$component.on("click", ".item-wrapper", function () {
 			const $item = $(this);

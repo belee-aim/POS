@@ -36,20 +36,20 @@ erpnext.MaterialTransfer.Controller = class {
 	}
 
 	async load_warehouses() {
-		const res = await frappe.call({
-			method: "pos.pos.page.material_transfer.material_transfer_api.get_warehouses",
-		});
-		this.warehouses = res.message || [];
-
-		// Try to get POS Profile warehouse as default to_warehouse
+		// Try to get POS Profile data (warehouse and company)
 		const pos_profile = frappe.defaults.get_default("pos_profile");
+		console.log("POS Profile:", pos_profile);
 		if (pos_profile) {
-			const wh_res = await frappe.call({
-				method: "pos.pos.page.material_transfer.material_transfer_api.get_pos_profile_warehouse",
+			const profile_res = await frappe.call({
+				method: "pos.pos.page.material_transfer.material_transfer_api.get_pos_profile_data",
 				args: { pos_profile },
 			});
-			if (wh_res.message) {
-				this.to_warehouse = wh_res.message;
+			console.log("Profile data:", profile_res.message);
+			if (profile_res.message) {
+				this.company = profile_res.message.company;
+				this.to_warehouse = profile_res.message.warehouse;
+				console.log("Company:", this.company, "Warehouse:", this.to_warehouse);
+				this.cart.set_company(this.company);
 				this.cart.set_to_warehouse(this.to_warehouse);
 			}
 		}
@@ -75,7 +75,6 @@ erpnext.MaterialTransfer.Controller = class {
 					const item_row = this.cart_items[item.item_code];
 					this.item_details.toggle_item_details_section(item_row);
 				},
-				numpad_event: (value, action) => this.update_item_field(value, action),
 				submit_request: () => this.submit_material_request(),
 				warehouse_changed: (type, warehouse) => {
 					if (type === "from") {
@@ -96,7 +95,6 @@ erpnext.MaterialTransfer.Controller = class {
 			events: {
 				toggle_item_selector: (minimize) => {
 					this.item_selector.resize_selector(minimize);
-					this.cart.toggle_numpad(minimize);
 				},
 				form_updated: (item, field, value) => {
 					if (this.cart_items[item.item_code]) {
@@ -106,13 +104,9 @@ erpnext.MaterialTransfer.Controller = class {
 					}
 					return Promise.resolve();
 				},
-				item_field_focused: (fieldname) => {
-					this.cart.toggle_numpad_field_edit(fieldname);
-				},
 				remove_item_from_cart: () => this.remove_item_from_cart(),
 				close_item_details: () => {
 					this.item_details.toggle_item_details_section(null);
-					this.cart.prev_action = null;
 					this.cart.toggle_item_highlight();
 				},
 				get_from_warehouse: () => this.from_warehouse,
@@ -209,19 +203,6 @@ erpnext.MaterialTransfer.Controller = class {
 			args: { item_code, warehouse },
 		});
 		return flt(res.message);
-	}
-
-	update_item_field(value, field_or_action) {
-		if (field_or_action === "checkout" || field_or_action === "submit") {
-			this.item_details.toggle_item_details_section(null);
-		} else if (field_or_action === "remove") {
-			this.remove_item_from_cart();
-		} else {
-			const field_control = this.item_details[`${field_or_action}_control`];
-			if (!field_control) return;
-			field_control.set_focus();
-			value != "" && field_control.set_value(value);
-		}
 	}
 
 	remove_item_from_cart() {
