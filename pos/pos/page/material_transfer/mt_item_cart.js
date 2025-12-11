@@ -37,6 +37,7 @@ erpnext.MaterialTransfer.ItemCart = class {
 
 		const me = this;
 		const company = this.company;
+		const to_warehouse = this.to_warehouse;
 
 		this.warehouse_field = frappe.ui.form.make_control({
 			df: {
@@ -52,6 +53,10 @@ erpnext.MaterialTransfer.ItemCart = class {
 					// Filter by company if available
 					if (company) {
 						filters.company = company;
+					}
+					// Exclude target warehouse from source selection
+					if (to_warehouse) {
+						filters.name = ["!=", to_warehouse];
 					}
 					return { filters };
 				},
@@ -71,14 +76,14 @@ erpnext.MaterialTransfer.ItemCart = class {
 
 	set_company(company) {
 		this.company = company;
-		console.log("Setting company filter:", company);
 		// Recreate warehouse selector with new company filter
 		this.make_warehouse_selector();
 	}
 
 	set_to_warehouse(warehouse) {
 		this.to_warehouse = warehouse;
-		this.update_warehouse_display();
+		// Recreate warehouse selector to exclude target warehouse
+		this.make_warehouse_selector();
 	}
 
 	update_warehouse_display() {

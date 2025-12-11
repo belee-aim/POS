@@ -5,6 +5,56 @@ erpnext.MaterialTransfer.Controller = class {
 		this.items = [];
 		this.cart_items = {};
 
+		this.check_opening_entry();
+	}
+
+	fetch_opening_entry() {
+		return frappe.call("erpnext.selling.page.point_of_sale.point_of_sale.check_opening_entry", {
+			user: frappe.session.user,
+		});
+	}
+
+	check_opening_entry() {
+		this.fetch_opening_entry().then((r) => {
+			if (r.message.length) {
+				// Use the first open POS Opening Entry
+				this.prepare_app_defaults(r.message[0]);
+			} else {
+				// No opening entry - show message to user
+				this.show_opening_entry_required_message();
+			}
+		});
+	}
+
+	show_opening_entry_required_message() {
+		this.wrapper.html(`
+			<div class="flex flex-col items-center justify-center" style="height: 50vh;">
+				<div class="text-muted" style="font-size: 1.2rem; text-align: center;">
+					<p>${__("No POS Opening Entry found.")}</p>
+					<p>${__("Please open a POS session first from the POS page.")}</p>
+					<button class="btn btn-primary btn-sm mt-4" onclick="frappe.set_route('point-of-sale')">
+						${__("Go to POS")}
+					</button>
+				</div>
+			</div>
+		`);
+	}
+
+	async prepare_app_defaults(data) {
+		this.pos_opening = data.name;
+		this.company = data.company;
+		this.pos_profile = data.pos_profile;
+
+		// Get warehouse from POS Profile
+		const profile_res = await frappe.call({
+			method: "pos.pos.page.material_transfer.material_transfer_api.get_pos_profile_data",
+			args: { pos_profile: this.pos_profile },
+		});
+
+		if (profile_res.message) {
+			this.to_warehouse = profile_res.message.warehouse;
+		}
+
 		this.init_app();
 	}
 
@@ -12,7 +62,18 @@ erpnext.MaterialTransfer.Controller = class {
 		this.prepare_dom();
 		this.prepare_components();
 		this.prepare_menu();
-		this.load_warehouses();
+		this.set_warehouse_data();
+	}
+
+	set_warehouse_data() {
+		if (this.company) {
+			this.cart.set_company(this.company);
+		}
+		if (this.to_warehouse) {
+			this.cart.set_to_warehouse(this.to_warehouse);
+		}
+		// Load items after warehouse is set
+		this.item_selector.refresh_items();
 	}
 
 	prepare_dom() {
@@ -24,6 +85,7 @@ erpnext.MaterialTransfer.Controller = class {
 		this.init_item_selector();
 		this.init_item_cart();
 		this.init_item_details();
+		this.init_request_dialog();
 	}
 
 	prepare_menu() {
@@ -33,26 +95,6 @@ erpnext.MaterialTransfer.Controller = class {
 				material_request_type: "Material Transfer",
 			});
 		});
-	}
-
-	async load_warehouses() {
-		// Try to get POS Profile data (warehouse and company)
-		const pos_profile = frappe.defaults.get_default("pos_profile");
-		console.log("POS Profile:", pos_profile);
-		if (pos_profile) {
-			const profile_res = await frappe.call({
-				method: "pos.pos.page.material_transfer.material_transfer_api.get_pos_profile_data",
-				args: { pos_profile },
-			});
-			console.log("Profile data:", profile_res.message);
-			if (profile_res.message) {
-				this.company = profile_res.message.company;
-				this.to_warehouse = profile_res.message.warehouse;
-				console.log("Company:", this.company, "Warehouse:", this.to_warehouse);
-				this.cart.set_company(this.company);
-				this.cart.set_to_warehouse(this.to_warehouse);
-			}
-		}
 	}
 
 	init_item_selector() {
@@ -75,7 +117,7 @@ erpnext.MaterialTransfer.Controller = class {
 					const item_row = this.cart_items[item.item_code];
 					this.item_details.toggle_item_details_section(item_row);
 				},
-				submit_request: () => this.submit_material_request(),
+				submit_request: () => this.show_request_dialog(),
 				warehouse_changed: (type, warehouse) => {
 					if (type === "from") {
 						this.from_warehouse = warehouse;
@@ -111,6 +153,20 @@ erpnext.MaterialTransfer.Controller = class {
 				},
 				get_from_warehouse: () => this.from_warehouse,
 				get_to_warehouse: () => this.to_warehouse,
+			},
+		});
+	}
+
+	init_request_dialog() {
+		this.request_dialog = new erpnext.MaterialTransfer.RequestDialog({
+			wrapper: this.$components_wrapper,
+			events: {
+				on_submit: async (data) => {
+					await this.submit_material_request(data);
+				},
+				on_close: () => {
+					this.toggle_components(true);
+				},
 			},
 		});
 	}
@@ -215,7 +271,7 @@ erpnext.MaterialTransfer.Controller = class {
 		}
 	}
 
-	async submit_material_request() {
+	show_request_dialog() {
 		const items = Object.values(this.cart_items);
 
 		if (!items.length) {
@@ -245,6 +301,25 @@ erpnext.MaterialTransfer.Controller = class {
 			return;
 		}
 
+		// Calculate totals
+		let total_qty = 0;
+		items.forEach((item) => {
+			total_qty += flt(item.qty);
+		});
+
+		// Hide other components and show dialog
+		this.toggle_components(false);
+		this.request_dialog.show({
+			from_warehouse: this.from_warehouse,
+			to_warehouse: this.to_warehouse,
+			total_items: items.length,
+			total_qty: total_qty,
+		});
+	}
+
+	async submit_material_request(data = {}) {
+		const items = Object.values(this.cart_items);
+
 		frappe.dom.freeze(__("Creating Material Request..."));
 
 		try {
@@ -254,6 +329,8 @@ erpnext.MaterialTransfer.Controller = class {
 					items: items,
 					from_warehouse: this.from_warehouse,
 					to_warehouse: this.to_warehouse,
+					schedule_date: data.schedule_date,
+					remarks: data.remarks,
 				},
 			});
 
@@ -268,6 +345,7 @@ erpnext.MaterialTransfer.Controller = class {
 				this.cart_items = {};
 				this.cart.clear_cart();
 				this.item_selector.refresh_items();
+				this.toggle_components(true);
 			}
 		} catch (error) {
 			console.error(error);
@@ -276,6 +354,7 @@ erpnext.MaterialTransfer.Controller = class {
 				indicator: "red",
 			});
 			frappe.utils.play_sound("error");
+			this.toggle_components(true);
 		} finally {
 			frappe.dom.unfreeze();
 		}

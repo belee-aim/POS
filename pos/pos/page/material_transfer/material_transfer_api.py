@@ -189,7 +189,7 @@ def item_group_query(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
-def create_material_request(items, from_warehouse, to_warehouse, purpose="Material Transfer"):
+def create_material_request(items, from_warehouse, to_warehouse, schedule_date=None, remarks=None, purpose="Material Transfer"):
 	"""Create Material Request document"""
 	if isinstance(items, str):
 		import json
@@ -207,11 +207,19 @@ def create_material_request(items, from_warehouse, to_warehouse, purpose="Materi
 	if from_warehouse == to_warehouse:
 		frappe.throw(_("Source and target warehouse cannot be the same"))
 
+	# Use provided schedule_date or default to today
+	if not schedule_date:
+		schedule_date = frappe.utils.today()
+
 	# Create Material Request
 	mr = frappe.new_doc("Material Request")
 	mr.material_request_type = purpose
 	mr.set_warehouse = to_warehouse
-	mr.schedule_date = frappe.utils.today()
+	mr.schedule_date = schedule_date
+
+	# Add remarks if provided
+	if remarks:
+		mr.custom_remarks = remarks
 
 	for item in items:
 		if flt(item.get("qty", 0)) <= 0:
@@ -224,7 +232,7 @@ def create_material_request(items, from_warehouse, to_warehouse, purpose="Materi
 			"stock_uom": item.get("stock_uom"),
 			"warehouse": to_warehouse,
 			"from_warehouse": from_warehouse,
-			"schedule_date": frappe.utils.today(),
+			"schedule_date": schedule_date,
 		})
 
 	if not mr.items:

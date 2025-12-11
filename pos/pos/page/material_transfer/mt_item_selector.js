@@ -9,7 +9,8 @@ erpnext.MaterialTransfer.ItemSelector = class {
 	init_component() {
 		this.prepare_dom();
 		this.make_search_bar();
-		this.load_items_data();
+		// Don't load items here - wait for warehouse to be set first
+		// Items will be loaded when refresh_items() is called after warehouse setup
 		this.bind_events();
 		this.attach_shortcuts();
 	}
@@ -64,7 +65,14 @@ erpnext.MaterialTransfer.ItemSelector = class {
 		});
 	}
 
-	refresh_items() {
+	async refresh_items() {
+		// Ensure parent_item_group is loaded
+		if (!this.parent_item_group) {
+			const res = await frappe.call({
+				method: "pos.pos.page.material_transfer.material_transfer_api.get_parent_item_group",
+			});
+			if (res.message) this.parent_item_group = res.message;
+		}
 		this.filter_items({ search_term: this.search_field?.get_value() || "" });
 	}
 
@@ -79,11 +87,11 @@ erpnext.MaterialTransfer.ItemSelector = class {
 	}
 
 	get_item_html(item) {
-		const me = this;
-		const { item_image, actual_qty, uom, from_warehouse_qty, to_warehouse_qty } = item;
+		const { item_image, uom, from_warehouse_qty, to_warehouse_qty } = item;
 
 		let indicator_color;
-		let qty_to_display = from_warehouse_qty || 0;
+		// Badge shows target warehouse (POS Profile/branch) stock - what the branch currently has
+		let qty_to_display = to_warehouse_qty || 0;
 
 		indicator_color = qty_to_display > 10 ? "green" : qty_to_display <= 0 ? "red" : "orange";
 
@@ -114,11 +122,9 @@ erpnext.MaterialTransfer.ItemSelector = class {
 
 		function get_stock_info_html() {
 			const from_qty = flt(from_warehouse_qty) || 0;
-			const to_qty = flt(to_warehouse_qty) || 0;
+			// Only show source warehouse stock (when source is selected)
 			return `<div class="item-stock-info">
 				<span class="from-stock" title="${__("Source warehouse stock")}">${from_qty}</span>
-				<span class="stock-separator">/</span>
-				<span class="to-stock" title="${__("Target warehouse stock")}">${to_qty}</span>
 			</div>`;
 		}
 

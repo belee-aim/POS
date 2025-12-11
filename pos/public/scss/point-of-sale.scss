@@ -1266,4 +1266,299 @@
 	100% {
 		transform: rotate(360deg);
 	}
+}
+
+// Material Transfer App Styles
+.material-transfer-app {
+	display: grid;
+	grid-template-columns: repeat(10, minmax(0, 1fr));
+	gap: var(--margin-md);
+	padding: 1%;
+
+	section {
+		min-height: 45rem;
+		height: calc(100vh - 200px);
+		max-height: calc(100vh - 200px);
+	}
+
+	.frappe-control {
+		margin: 0 !important;
+		width: 100%;
+	}
+
+	.form-group {
+		margin-bottom: 0px !important;
+	}
+
+	// Warehouse display in cart
+	.warehouse-display {
+		margin-top: var(--margin-sm);
+
+		.warehouse-info {
+			display: flex;
+			align-items: center;
+			padding: var(--padding-sm);
+			background-color: var(--control-bg);
+			border-radius: var(--border-radius-md);
+
+			.warehouse-icon {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 2.5rem;
+				height: 2.5rem;
+				margin-right: var(--margin-md);
+				color: var(--text-muted);
+			}
+
+			.warehouse-details {
+				flex: 1;
+
+				.warehouse-name {
+					font-weight: 600;
+					font-size: var(--text-md);
+				}
+
+				.warehouse-label {
+					font-size: var(--text-sm);
+					color: var(--text-muted);
+				}
+			}
+
+			.reset-warehouse-btn {
+				cursor: pointer;
+				padding: var(--padding-xs);
+
+				&:hover {
+					background-color: var(--gray-200);
+					border-radius: var(--border-radius-sm);
+				}
+			}
+		}
+	}
+
+	// Item stock info in cart
+	.item-stock-info {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+
+		.from-qty {
+			color: var(--orange-500);
+		}
+
+		.to-qty {
+			color: var(--green-500);
+		}
+	}
+
+	// Request Container - POS Payment style
+	> .request-container {
+		grid-column: span 6 / span 6;
+		display: none;
+		flex-direction: column;
+		background-color: var(--fg-color);
+		box-shadow: var(--shadow-base);
+		border-radius: var(--border-radius-md);
+		padding: var(--padding-lg);
+
+		.section-label {
+			display: flex;
+			align-items: center;
+			font-weight: 700;
+			font-size: var(--text-lg);
+			cursor: pointer;
+			user-select: none;
+			margin-bottom: var(--margin-md);
+		}
+
+		> .request-modes-section {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			margin-bottom: var(--margin-md);
+
+			> .transfer-summary {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: var(--margin-lg);
+				padding: var(--padding-lg);
+				background-color: var(--control-bg);
+				border-radius: var(--border-radius-md);
+
+				.summary-card {
+					display: flex;
+					align-items: center;
+					gap: var(--margin-md);
+					padding: var(--padding-md);
+					background-color: var(--fg-color);
+					border-radius: var(--border-radius-md);
+					box-shadow: var(--shadow-sm);
+					min-width: 180px;
+
+					.summary-icon {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						width: 48px;
+						height: 48px;
+						border-radius: var(--border-radius-md);
+
+						&.from-icon {
+							background-color: var(--orange-100);
+							color: var(--orange-500);
+						}
+
+						&.to-icon {
+							background-color: var(--green-100);
+							color: var(--green-500);
+						}
+					}
+
+					.summary-info {
+						.summary-label {
+							font-size: var(--text-sm);
+							color: var(--text-muted);
+							font-weight: 500;
+							margin-bottom: 0;
+						}
+
+						.summary-value {
+							font-size: var(--text-md);
+							font-weight: 700;
+							max-width: 140px;
+							overflow: hidden;
+							text-overflow: ellipsis;
+							white-space: nowrap;
+						}
+					}
+				}
+
+				.transfer-arrow {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					color: var(--text-muted);
+				}
+			}
+		}
+
+		> .seperator {
+			margin: var(--margin-sm) 0;
+			border-bottom: 1px solid var(--gray-300);
+		}
+
+		> .fields-numpad-container {
+			display: flex;
+			flex-direction: column;
+			padding-top: var(--padding-md);
+
+			> .fields-section {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+
+				.request-fields {
+					display: grid;
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+					gap: var(--margin-md);
+
+					.schedule-date-field {
+						grid-column: span 1;
+					}
+
+					.remarks-field {
+						grid-column: span 2;
+					}
+				}
+			}
+		}
+
+		> .totals-section {
+			display: flex;
+			margin-top: auto;
+			margin-bottom: var(--margin-sm);
+			justify-content: center;
+			flex-direction: column;
+			flex-shrink: 0;
+
+			> .totals {
+				display: flex;
+				background-color: var(--control-bg);
+				justify-content: center;
+				padding: var(--padding-md);
+				border-radius: var(--border-radius-md);
+
+				> .col {
+					flex-grow: 1;
+					text-align: center;
+
+					> .total-label {
+						font-size: var(--text-md);
+						font-weight: 500;
+					}
+
+					> .value {
+						font-size: var(--text-2xl);
+						font-weight: 700;
+					}
+				}
+
+				> .seperator-y {
+					margin-left: var(--margin-sm);
+					margin-right: var(--margin-sm);
+					border-right: 1px solid var(--gray-300);
+				}
+			}
+		}
+
+		> .request-actions {
+			display: flex;
+			gap: var(--margin-md);
+			margin-top: var(--margin-md);
+
+			> .edit-cart-btn {
+				cursor: pointer;
+				user-select: none;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: var(--padding-sm);
+				margin-top: var(--margin-sm);
+				border-radius: var(--border-radius-md);
+				font-size: var(--text-lg);
+				font-weight: 500;
+				flex: 1;
+				background-color: var(--control-bg);
+				transition: all 0.15s ease-in-out;
+
+				&:hover {
+					background-color: var(--gray-200);
+				}
+			}
+
+			> .submit-request-btn {
+				cursor: pointer;
+				user-select: none;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: var(--padding-sm);
+				margin-top: var(--margin-sm);
+				border-radius: var(--border-radius-md);
+				font-size: var(--text-lg);
+				font-weight: 700;
+				flex: 2;
+				background-color: var(--blue-500);
+				color: white;
+
+				&:hover {
+					background-color: var(--blue-600);
+				}
+			}
+		}
+	}
 } 
