@@ -1,0 +1,164 @@
+// Material Transfer uses same styles as POS
+@import "./point-of-sale.scss";
+
+// Material Transfer specific styles
+.material-transfer-app {
+	@extend .pos-app;
+
+	// Stock info display in item cards
+	.item-stock-info {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+
+		.from-stock {
+			color: var(--blue-500);
+			font-weight: 600;
+		}
+
+		.stock-separator {
+			color: var(--gray-400);
+		}
+
+		.to-stock {
+			color: var(--green-500);
+			font-weight: 600;
+		}
+	}
+
+	// Warehouse selector section
+	.warehouse-field {
+		width: 100%;
+	}
+
+	.warehouse-display {
+		display: flex;
+		align-items: center;
+		padding: var(--padding-sm);
+		background-color: var(--control-bg);
+		border-radius: var(--border-radius-md);
+		margin-top: var(--margin-sm);
+
+		.warehouse-info {
+			display: flex;
+			align-items: center;
+			width: 100%;
+			gap: var(--margin-sm);
+
+			.warehouse-icon {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 40px;
+				height: 40px;
+				background-color: var(--blue-100);
+				border-radius: var(--border-radius-md);
+				color: var(--blue-500);
+			}
+
+			.warehouse-details {
+				flex: 1;
+
+				.warehouse-name {
+					font-weight: 600;
+					font-size: var(--text-md);
+				}
+
+				.warehouse-label {
+					font-size: var(--text-sm);
+					color: var(--text-muted);
+				}
+			}
+
+			.reset-warehouse-btn {
+				cursor: pointer;
+				padding: var(--padding-xs);
+				border-radius: var(--border-radius-sm);
+
+				&:hover {
+					background-color: var(--gray-200);
+				}
+			}
+		}
+	}
+
+	// Stock info in item details
+	.stock-info-section {
+		padding: var(--padding-md);
+		background-color: var(--control-bg);
+		border-radius: var(--border-radius-md);
+		margin: var(--margin-md) 0;
+
+		.stock-info-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: var(--padding-xs) 0;
+
+			&:not(:last-child) {
+				border-bottom: 1px solid var(--gray-200);
+			}
+
+			.stock-label {
+				font-size: var(--text-sm);
+				color: var(--text-muted);
+			}
+
+			.stock-value {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+
+				.warehouse-name {
+					font-weight: 600;
+					font-size: var(--text-sm);
+				}
+
+				.stock-qty {
+					font-size: var(--text-sm);
+					color: var(--text-muted);
+				}
+			}
+		}
+	}
+
+	// Cart item stock display
+	.cart-item-wrapper {
+		.item-stock-info {
+			display: flex;
+			align-items: center;
+			gap: 2px;
+			font-size: var(--text-xs);
+
+			.from-qty {
+				color: var(--blue-500);
+			}
+
+			.to-qty {
+				color: var(--green-500);
+			}
+		}
+	}
+
+	// Remove button in item details
+	.remove-btn-container {
+		margin-top: var(--margin-md);
+		display: flex;
+		justify-content: center;
+
+		.remove-item-btn {
+			width: 100%;
+		}
+	}
+
+	// Item details form
+	.form-container {
+		padding: var(--padding-md);
+
+		.frappe-control {
+			margin-bottom: var(--margin-md) !important;
+		}
+	}
+}

@@ -19,6 +19,12 @@ add_to_apps_screen = [
 		"logo": "/assets/pos/images/point-of-sale.png",
 		"title": "POS",
 		"route": "app/pos",
+	},
+	{
+		"name": "Material Transfer",
+		"logo": "/assets/pos/images/point-of-sale.png",
+		"title": "Material Transfer",
+		"route": "app/material-transfer",
 	}
 ]
 
@@ -26,7 +32,7 @@ add_to_apps_screen = [
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = "pos.bundle.css"
+app_include_css = ["pos.bundle.css", "material_transfer.bundle.css"]
 app_include_js = "/assets/pos/js/qrcode.min.js"
 
 # include js, css files in header of web template
