@@ -2,6 +2,9 @@ erpnext.MaterialTransfer.PastRequestList = class {
 	constructor({ wrapper, events }) {
 		this.wrapper = wrapper;
 		this.events = events;
+		this.page_length = 20;
+		this.current_page = 0;
+		this.has_more = false;
 
 		this.init_component();
 	}
@@ -26,11 +29,15 @@ erpnext.MaterialTransfer.PastRequestList = class {
 					<div class="status-field"></div>
 				</div>
 				<div class="invoices-container"></div>
+				<div class="load-more-container text-center p-3" style="display: none;">
+					<button class="btn btn-default btn-sm load-more-btn">${__("Load More")}</button>
+				</div>
 			</section>`
 		);
 
 		this.$component = this.wrapper.find(".past-order-list");
 		this.$invoices_container = this.$component.find(".invoices-container");
+		this.$load_more_container = this.$component.find(".load-more-container");
 	}
 
 	bind_events() {
@@ -38,7 +45,7 @@ erpnext.MaterialTransfer.PastRequestList = class {
 			clearTimeout(this.last_search);
 			this.last_search = setTimeout(() => {
 				const search_term = e.target.value;
-				this.refresh_list(search_term, this.status_field.get_value());
+				this.refresh_list();
 			}, 300);
 		});
 		const me = this;
@@ -53,6 +60,11 @@ erpnext.MaterialTransfer.PastRequestList = class {
 			if (this.events.go_back) {
 				this.events.go_back();
 			}
+		});
+
+		// Load more button
+		this.$load_more_container.find(".load-more-btn").on("click", () => {
+			this.load_more();
 		});
 	}
 
@@ -88,6 +100,7 @@ erpnext.MaterialTransfer.PastRequestList = class {
 	refresh_list() {
 		frappe.dom.freeze();
 		this.events.reset_summary();
+		this.current_page = 0;
 		const search_term = this.search_field.get_value();
 		const status = this.status_field.get_value();
 
@@ -96,13 +109,55 @@ erpnext.MaterialTransfer.PastRequestList = class {
 		return frappe.call({
 			method: "pos.pos.page.material_transfer.material_transfer_api.get_past_request_list",
 			freeze: true,
-			args: { search_term, status },
+			args: {
+				search_term,
+				status,
+				page_length: this.page_length,
+				start: 0,
+			},
 			callback: (response) => {
 				frappe.dom.unfreeze();
-				response.message.forEach((request) => {
+				const requests = response.message || [];
+				requests.forEach((request) => {
 					const request_html = this.get_request_html(request);
 					this.$invoices_container.append(request_html);
 				});
+
+				// Show/hide load more button
+				this.has_more = requests.length >= this.page_length;
+				this.$load_more_container.css("display", this.has_more ? "block" : "none");
+			},
+		});
+	}
+
+	load_more() {
+		this.current_page++;
+		const search_term = this.search_field.get_value();
+		const status = this.status_field.get_value();
+		const start = this.current_page * this.page_length;
+
+		frappe.dom.freeze();
+
+		return frappe.call({
+			method: "pos.pos.page.material_transfer.material_transfer_api.get_past_request_list",
+			freeze: true,
+			args: {
+				search_term,
+				status,
+				page_length: this.page_length,
+				start,
+			},
+			callback: (response) => {
+				frappe.dom.unfreeze();
+				const requests = response.message || [];
+				requests.forEach((request) => {
+					const request_html = this.get_request_html(request);
+					this.$invoices_container.append(request_html);
+				});
+
+				// Show/hide load more button
+				this.has_more = requests.length >= this.page_length;
+				this.$load_more_container.css("display", this.has_more ? "block" : "none");
 			},
 		});
 	}

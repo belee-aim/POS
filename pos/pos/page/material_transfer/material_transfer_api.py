@@ -301,8 +301,10 @@ def end_material_transfer(material_request_name):
 
 
 @frappe.whitelist()
-def get_past_request_list(search_term="", status="Pending"):
-	"""Get list of past material requests filtered by transfer_status"""
+def get_past_request_list(search_term="", status="Pending", page_length=20, start=0):
+	"""Get list of past material requests filtered by transfer_status with pagination"""
+	page_length = cint(page_length)
+	start = cint(start)
 
 	# Build transfer_status condition based on UI status
 	# Note: transfer_status can be empty string "", "Not Started", "In Transit", or "Completed"
@@ -336,9 +338,9 @@ def get_past_request_list(search_term="", status="Pending"):
 				AND mr.name LIKE %(search_term)s
 			ORDER BY
 				mr.creation DESC
-			LIMIT 30
+			LIMIT %(page_length)s OFFSET %(start)s
 			""",
-			{"search_term": f"%{search_term}%"},
+			{"search_term": f"%{search_term}%", "page_length": page_length, "start": start},
 			as_dict=True,
 		)
 
@@ -360,7 +362,8 @@ def get_past_request_list(search_term="", status="Pending"):
 			AND {transfer_status_condition}
 		ORDER BY
 			mr.creation DESC
-		LIMIT 30
+		LIMIT %(page_length)s OFFSET %(start)s
 		""",
+		{"page_length": page_length, "start": start},
 		as_dict=True,
 	)
