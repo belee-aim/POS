@@ -215,7 +215,9 @@ erpnext.PointOfSale.Controller = class {
 	prepare_menu() {
 		this.page.clear_menu();
 
-		this.page.add_menu_item(__("Open Form View"), this.open_form_view.bind(this), false, "Ctrl+F");
+		// this.page.add_menu_item(__("Open Form View"), this.open_form_view.bind(this), false, "Ctrl+F");
+
+		this.page.add_menu_item(__("Material Transfer"), this.go_to_material_transfer.bind(this), false, "Ctrl+M");
 
 		this.page.add_menu_item(
 			__("Toggle Recent Orders"),
@@ -227,6 +229,10 @@ erpnext.PointOfSale.Controller = class {
 		this.page.add_menu_item(__("Save as Draft"), this.save_draft_invoice.bind(this), false, "Ctrl+S");
 
 		this.page.add_menu_item(__("Close the POS"), this.close_pos.bind(this), false, "Shift+Ctrl+C");
+	}
+
+	go_to_material_transfer() {
+		frappe.set_route("material-transfer");
 	}
 
 	prepare_fullscreen_btn() {

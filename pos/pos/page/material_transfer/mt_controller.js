@@ -63,7 +63,12 @@ erpnext.MaterialTransfer.Controller = class {
 		this.prepare_components();
 		this.prepare_menu();
 		this.prepare_fullscreen_btn();
+		this.set_pos_profile_status();
 		this.set_warehouse_data();
+	}
+
+	set_pos_profile_status() {
+		this.page.set_indicator(this.pos_profile, "blue");
 	}
 
 	set_warehouse_data() {
@@ -94,12 +99,18 @@ erpnext.MaterialTransfer.Controller = class {
 	prepare_menu() {
 		this.page.clear_menu();
 
+		this.page.add_menu_item(__("POS"), this.go_to_pos.bind(this), false, "Ctrl+P");
+
 		this.page.add_menu_item(
 			__("Toggle Recent Requests"),
 			this.toggle_recent_request.bind(this),
 			false,
 			"Ctrl+O"
 		);
+	}
+
+	go_to_pos() {
+		frappe.set_route("pos");
 	}
 
 	prepare_fullscreen_btn() {
