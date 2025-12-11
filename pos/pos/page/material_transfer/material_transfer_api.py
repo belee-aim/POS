@@ -252,3 +252,63 @@ def get_stock_availability(item_code, warehouse):
 	"""Get stock availability for an item in a warehouse"""
 	qty = get_stock_qty(item_code, warehouse)
 	return qty
+
+
+@frappe.whitelist()
+def get_past_request_list(search_term="", status="Pending"):
+	"""Get list of past material requests"""
+	filters = {
+		"material_request_type": "Material Transfer",
+		"docstatus": 1,
+	}
+
+	if status:
+		filters["status"] = status
+
+	if search_term:
+		return frappe.db.sql(
+			"""
+			SELECT
+				mr.name,
+				mr.transaction_date,
+				mr.schedule_date,
+				mr.status,
+				mr.set_warehouse,
+				(SELECT SUM(qty) FROM `tabMaterial Request Item` WHERE parent = mr.name) as total_qty
+			FROM
+				`tabMaterial Request` mr
+			WHERE
+				mr.material_request_type = 'Material Transfer'
+				AND mr.docstatus = 1
+				AND mr.status = %(status)s
+				AND mr.name LIKE %(search_term)s
+			ORDER BY
+				mr.creation DESC
+			LIMIT 30
+			""",
+			{"status": status, "search_term": f"%{search_term}%"},
+			as_dict=True,
+		)
+
+	return frappe.db.sql(
+		"""
+		SELECT
+			mr.name,
+			mr.transaction_date,
+			mr.schedule_date,
+			mr.status,
+			mr.set_warehouse,
+			(SELECT SUM(qty) FROM `tabMaterial Request Item` WHERE parent = mr.name) as total_qty
+		FROM
+			`tabMaterial Request` mr
+		WHERE
+			mr.material_request_type = 'Material Transfer'
+			AND mr.docstatus = 1
+			AND mr.status = %(status)s
+		ORDER BY
+			mr.creation DESC
+		LIMIT 30
+		""",
+		{"status": status},
+		as_dict=True,
+	)

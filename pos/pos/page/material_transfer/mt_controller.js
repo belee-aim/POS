@@ -86,15 +86,30 @@ erpnext.MaterialTransfer.Controller = class {
 		this.init_item_cart();
 		this.init_item_details();
 		this.init_request_dialog();
+		this.init_recent_request_list();
+		this.init_request_summary();
 	}
 
 	prepare_menu() {
 		this.page.clear_menu();
-		this.page.add_menu_item(__("View Material Requests"), () => {
-			frappe.set_route("List", "Material Request", {
-				material_request_type: "Material Transfer",
-			});
-		});
+
+		this.page.add_menu_item(
+			__("Toggle Recent Requests"),
+			this.toggle_recent_request.bind(this),
+			false,
+			"Ctrl+O"
+		);
+	}
+
+	toggle_recent_request() {
+		const show = this.recent_request_list.$component.is(":hidden");
+		this.toggle_recent_request_list(show);
+	}
+
+	toggle_recent_request_list(show) {
+		this.toggle_components(!show);
+		this.recent_request_list.toggle_component(show);
+		this.request_summary.toggle_component(show);
 	}
 
 	init_item_selector() {
@@ -165,6 +180,33 @@ erpnext.MaterialTransfer.Controller = class {
 					await this.submit_material_request(data);
 				},
 				on_close: () => {
+					this.toggle_components(true);
+				},
+			},
+		});
+	}
+
+	init_recent_request_list() {
+		this.recent_request_list = new erpnext.MaterialTransfer.PastRequestList({
+			wrapper: this.$components_wrapper,
+			events: {
+				open_request_data: (name) => {
+					frappe.db.get_doc("Material Request", name).then((doc) => {
+						this.request_summary.load_summary_of(doc);
+					});
+				},
+				reset_summary: () => this.request_summary.toggle_summary_placeholder(true),
+			},
+		});
+	}
+
+	init_request_summary() {
+		this.request_summary = new erpnext.MaterialTransfer.PastRequestSummary({
+			wrapper: this.$components_wrapper,
+			events: {
+				new_request: () => {
+					this.recent_request_list.toggle_component(false);
+					this.request_summary.toggle_component(false);
 					this.toggle_components(true);
 				},
 			},
