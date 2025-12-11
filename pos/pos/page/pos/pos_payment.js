@@ -56,12 +56,10 @@ erpnext.PointOfSale.Payment = class {
 		
 		this.$payment_list.empty();
 		payments.forEach(p => {
-			if(p.amount > 0) {
-				const amount = p.amount > 0 ? format_currency(p.amount, currency) : "";
-				this.$payment_list.append(`
-					<div>${p.mode_of_payment}: ${amount}</div>
-				`);
-			}
+			const amount = format_currency(p.amount, currency);
+			this.$payment_list.append(`
+				<div>${p.mode_of_payment}: ${amount}</div>
+			`);
 		});
 	}
 
