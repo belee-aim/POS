@@ -62,6 +62,7 @@ erpnext.MaterialTransfer.Controller = class {
 		this.prepare_dom();
 		this.prepare_components();
 		this.prepare_menu();
+		this.prepare_fullscreen_btn();
 		this.set_warehouse_data();
 	}
 
@@ -99,6 +100,39 @@ erpnext.MaterialTransfer.Controller = class {
 			false,
 			"Ctrl+O"
 		);
+	}
+
+	prepare_fullscreen_btn() {
+		this.page.page_actions.find(".custom-actions").empty();
+
+		this.page.add_button(__("Full Screen"), null, { btn_class: "btn-default fullscreen-btn" });
+
+		this.bind_fullscreen_events();
+	}
+
+	bind_fullscreen_events() {
+		this.$fullscreen_btn = this.page.page_actions.find(".fullscreen-btn");
+
+		this.$fullscreen_btn.on("click", function () {
+			if (!document.fullscreenElement) {
+				document.documentElement.requestFullscreen();
+			} else if (document.exitFullscreen) {
+				document.exitFullscreen();
+			}
+		});
+
+		$(document).on("fullscreenchange", this.handle_fullscreen_change_event.bind(this));
+	}
+
+	handle_fullscreen_change_event() {
+		let enable_fullscreen_label = __("Full Screen");
+		let exit_fullscreen_label = __("Exit Full Screen");
+
+		if (document.fullscreenElement) {
+			this.$fullscreen_btn[0].innerText = exit_fullscreen_label;
+		} else {
+			this.$fullscreen_btn[0].innerText = enable_fullscreen_label;
+		}
 	}
 
 	toggle_recent_request() {

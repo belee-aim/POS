@@ -1,3 +1,57 @@
+// Fullscreen mode - hide navbar, fix page head
+body.mt-fullscreen {
+	header.navbar.mt-hide {
+		display: none !important;
+	}
+
+	.page-head {
+		position: fixed !important;
+		top: 0 !important;
+		left: 0 !important;
+		right: 0 !important;
+		z-index: 100 !important;
+		background-color: var(--fg-color) !important;
+		border-bottom: 1px solid var(--border-color);
+		margin: 0 !important;
+	}
+
+	.main-section {
+		margin-top: 0 !important;
+		padding-top: 60px !important;
+	}
+
+	.layout-main-section {
+		padding-top: 0 !important;
+	}
+}
+
+// POS fullscreen mode
+body.pos-fullscreen {
+	header.navbar.pos-hide {
+		display: none !important;
+	}
+
+	.page-head {
+		position: fixed !important;
+		top: 0 !important;
+		left: 0 !important;
+		right: 0 !important;
+		z-index: 100 !important;
+		background-color: var(--fg-color) !important;
+		border-bottom: 1px solid var(--border-color);
+		margin: 0 !important;
+	}
+
+	.main-section {
+		margin-top: 0 !important;
+		padding-top: 60px !important;
+	}
+
+	.layout-main-section {
+		padding-top: 0 !important;
+	}
+}
+
 .pos-app {
 	display: grid;
 	grid-template-columns: repeat(10, minmax(0, 1fr));
@@ -6,8 +60,8 @@
 
 	section {
 		min-height: 45rem;
-		height: calc(100vh - 200px);
-		max-height: calc(100vh - 200px);
+		height: calc(100vh - 100px);
+		max-height: calc(100vh - 100px);
 	}
 
 	.frappe-control {
@@ -1277,8 +1331,8 @@
 
 	section {
 		min-height: 45rem;
-		height: calc(100vh - 200px);
-		max-height: calc(100vh - 200px);
+		height: calc(100vh - 100px);
+		max-height: calc(100vh - 100px);
 	}
 
 	.frappe-control {
