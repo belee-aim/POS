@@ -230,6 +230,11 @@ erpnext.MaterialTransfer.Controller = class {
 					});
 				},
 				reset_summary: () => this.request_summary.toggle_summary_placeholder(true),
+				go_back: () => {
+					this.recent_request_list.toggle_component(false);
+					this.request_summary.toggle_component(false);
+					this.toggle_components(true);
+				},
 			},
 		});
 	}
@@ -242,6 +247,10 @@ erpnext.MaterialTransfer.Controller = class {
 					this.recent_request_list.toggle_component(false);
 					this.request_summary.toggle_component(false);
 					this.toggle_components(true);
+				},
+				on_transit_ended: () => {
+					// Refresh the recent request list after transit is ended
+					this.recent_request_list.refresh_list();
 				},
 			},
 		});

@@ -41,14 +41,23 @@ erpnext.MaterialTransfer.PastRequestSummary = class {
 	}
 
 	get_upper_section_html(doc) {
-		const { status } = doc;
+		const transfer_status = doc.transfer_status || "Not Started";
 		let indicator_color = "";
+		let display_status = "";
 
-		status === "Pending" && (indicator_color = "orange");
-		status === "Partially Ordered" && (indicator_color = "yellow");
-		status === "Ordered" && (indicator_color = "blue");
-		status === "Transferred" && (indicator_color = "green");
-		status === "Cancelled" && (indicator_color = "red");
+		if (transfer_status === "Not Started") {
+			indicator_color = "orange";
+			display_status = "Pending";
+		} else if (transfer_status === "In Transit") {
+			indicator_color = "yellow";
+			display_status = "In Transit";
+		} else if (transfer_status === "Completed") {
+			indicator_color = "green";
+			display_status = "Received";
+		} else {
+			indicator_color = "gray";
+			display_status = transfer_status;
+		}
 
 		return `<div class="left-section">
 					<div class="customer-section">
@@ -60,7 +69,7 @@ erpnext.MaterialTransfer.PastRequestSummary = class {
 				<div class="right-section">
 					<div class="paid-amount">${doc.items.length} ${__("Items")}</div>
 					<div class="invoice-name">${doc.name}</div>
-					<span class="indicator-pill whitespace-nowrap ${indicator_color}"><span>${__(doc.status)}</span></span>
+					<span class="indicator-pill whitespace-nowrap ${indicator_color}"><span>${__(display_status)}</span></span>
 				</div>`;
 	}
 
@@ -112,6 +121,57 @@ erpnext.MaterialTransfer.PastRequestSummary = class {
 		this.$summary_container.on("click", ".print-btn", () => {
 			this.print_request();
 		});
+
+		this.$summary_container.on("click", ".end-btn", () => {
+			this.end_transit();
+		});
+	}
+
+	async end_transit() {
+		if (!this.doc || this.doc.transfer_status !== "In Transit") {
+			frappe.show_alert({
+				message: __("This request is not in transit"),
+				indicator: "orange",
+			});
+			return;
+		}
+
+		frappe.dom.freeze(__("Receiving items..."));
+
+		try {
+			const res = await frappe.call({
+				method: "pos.pos.page.material_transfer.material_transfer_api.end_material_transfer",
+				args: {
+					material_request_name: this.doc.name,
+				},
+			});
+
+			if (res.message) {
+				frappe.show_alert({
+					message: __("Items received successfully. Stock Entry: {0}", [res.message.stock_entry]),
+					indicator: "green",
+				});
+				frappe.utils.play_sound("submit");
+
+				// Reload the document to refresh the summary
+				const updated_doc = await frappe.db.get_doc("Material Request", this.doc.name);
+				this.load_summary_of(updated_doc);
+
+				// Trigger event to refresh the list
+				if (this.events.on_transit_ended) {
+					this.events.on_transit_ended();
+				}
+			}
+		} catch (error) {
+			console.error(error);
+			frappe.show_alert({
+				message: __("Failed to receive items"),
+				indicator: "red",
+			});
+			frappe.utils.play_sound("error");
+		} finally {
+			frappe.dom.unfreeze();
+		}
 	}
 
 	print_request() {
@@ -174,7 +234,13 @@ erpnext.MaterialTransfer.PastRequestSummary = class {
 		if (after_submission)
 			return [{ condition: true, visible_btns: ["Print Request", "New Request"] }];
 
+		const is_in_transit = this.doc.transfer_status === "In Transit";
+
 		return [
+			{
+				condition: is_in_transit,
+				visible_btns: ["End Transit"],
+			},
 			{
 				condition: this.doc.docstatus === 1,
 				visible_btns: ["Print Request", "New Request"],
@@ -215,13 +281,23 @@ erpnext.MaterialTransfer.PastRequestSummary = class {
 		});
 	}
 
+	get_status_html(doc) {
+		const status = doc.status || "Unknown";
+		return `<div class="summary-row-wrapper">
+					<div>${__("Status")}</div>
+					<div>${__(status)}</div>
+				</div>`;
+	}
+
 	attach_totals_info(doc) {
 		this.$totals_container.html("");
 
+		const status_dom = this.get_status_html(doc);
 		const transaction_date_dom = this.get_transaction_date_html(doc);
 		const schedule_date_dom = this.get_schedule_date_html(doc);
 		const total_qty_dom = this.get_total_qty_html(doc);
 
+		this.$totals_container.append(status_dom);
 		this.$totals_container.append(transaction_date_dom);
 		this.$totals_container.append(schedule_date_dom);
 		this.$totals_container.append(total_qty_dom);

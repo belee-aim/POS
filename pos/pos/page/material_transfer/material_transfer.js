@@ -11,6 +11,7 @@ frappe.pages["material-transfer"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+
 	frappe.require("material_transfer.bundle.js", function () {
 		wrapper.material_transfer = new erpnext.MaterialTransfer.Controller(wrapper);
 		window.cur_mt = wrapper.material_transfer;

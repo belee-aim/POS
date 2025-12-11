@@ -16,7 +16,12 @@ erpnext.MaterialTransfer.PastRequestList = class {
 		this.wrapper.append(
 			`<section class="past-order-list">
 				<div class="filter-section">
-					<div class="label">${__("Recent Requests")}</div>
+					<div class="label back-btn" style="cursor: pointer;">
+						<svg class="icon icon-sm mr-2" style="vertical-align: middle;">
+							<use href="#icon-left"></use>
+						</svg>
+						${__("Recent Requests")}
+					</div>
 					<div class="search-field"></div>
 					<div class="status-field"></div>
 				</div>
@@ -42,6 +47,13 @@ erpnext.MaterialTransfer.PastRequestList = class {
 
 			me.events.open_request_data(request_name);
 		});
+
+		// Back button to return to main screen
+		this.$component.find(".back-btn").on("click", () => {
+			if (this.events.go_back) {
+				this.events.go_back();
+			}
+		});
 	}
 
 	make_filter_section() {
@@ -59,7 +71,7 @@ erpnext.MaterialTransfer.PastRequestList = class {
 			df: {
 				label: __("Request Status"),
 				fieldtype: "Select",
-				options: `Pending\nPartially Ordered\nOrdered\nTransferred\nCancelled`,
+				options: `Pending\nIn Transit\nReceived`,
 				placeholder: __("Filter by request status"),
 				onchange: function () {
 					if (me.$component.is(":visible")) me.refresh_list();

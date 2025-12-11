@@ -255,24 +255,76 @@ def get_stock_availability(item_code, warehouse):
 
 
 @frappe.whitelist()
-def get_past_request_list(search_term="", status="Pending"):
-	"""Get list of past material requests"""
-	filters = {
-		"material_request_type": "Material Transfer",
-		"docstatus": 1,
+def end_material_transfer(material_request_name):
+	"""End transit and receive items at destination warehouse"""
+	from erpnext.stock.doctype.stock_entry.stock_entry import make_stock_in_entry
+
+	mr = frappe.get_doc("Material Request", material_request_name)
+
+	if mr.transfer_status != "In Transit":
+		frappe.throw(_("Material Request {0} is not in transit").format(material_request_name))
+
+	# Find the outgoing stock entry (material_request is in Stock Entry Detail, not Stock Entry)
+	outgoing_stock_entry = frappe.db.sql(
+		"""
+		SELECT DISTINCT se.name
+		FROM `tabStock Entry` se
+		INNER JOIN `tabStock Entry Detail` sed ON sed.parent = se.name
+		WHERE sed.material_request = %s
+			AND se.add_to_transit = 1
+			AND se.docstatus = 1
+		LIMIT 1
+		""",
+		(material_request_name,),
+		as_dict=True,
+	)
+	outgoing_stock_entry = outgoing_stock_entry[0].name if outgoing_stock_entry else None
+
+	if not outgoing_stock_entry:
+		frappe.throw(_("No transit Stock Entry found for Material Request {0}").format(material_request_name))
+
+	# Create receiving stock entry using ERPNext's built-in function
+	receiving_entry = make_stock_in_entry(outgoing_stock_entry)
+
+	# Set target warehouse for all items
+	for item in receiving_entry.items:
+		item.t_warehouse = mr.set_warehouse
+
+	receiving_entry.insert()
+	receiving_entry.submit()
+
+	return {
+		"name": mr.name,
+		"stock_entry": receiving_entry.name,
+		"transfer_status": mr.transfer_status,
 	}
 
-	if status:
-		filters["status"] = status
+
+@frappe.whitelist()
+def get_past_request_list(search_term="", status="Pending"):
+	"""Get list of past material requests filtered by transfer_status"""
+
+	# Build transfer_status condition based on UI status
+	# Note: transfer_status can be empty string "", "Not Started", "In Transit", or "Completed"
+	if status == "Pending":
+		# Pending includes empty, NULL, and "Not Started"
+		transfer_status_condition = "(mr.transfer_status IS NULL OR mr.transfer_status = '' OR mr.transfer_status = 'Not Started')"
+	elif status == "In Transit":
+		transfer_status_condition = "mr.transfer_status = 'In Transit'"
+	elif status == "Received":
+		transfer_status_condition = "mr.transfer_status = 'Completed'"
+	else:
+		transfer_status_condition = "(mr.transfer_status IS NULL OR mr.transfer_status = '' OR mr.transfer_status = 'Not Started')"
 
 	if search_term:
 		return frappe.db.sql(
-			"""
+			f"""
 			SELECT
 				mr.name,
 				mr.transaction_date,
 				mr.schedule_date,
 				mr.status,
+				mr.transfer_status,
 				mr.set_warehouse,
 				(SELECT SUM(qty) FROM `tabMaterial Request Item` WHERE parent = mr.name) as total_qty
 			FROM
@@ -280,23 +332,24 @@ def get_past_request_list(search_term="", status="Pending"):
 			WHERE
 				mr.material_request_type = 'Material Transfer'
 				AND mr.docstatus = 1
-				AND mr.status = %(status)s
+				AND {transfer_status_condition}
 				AND mr.name LIKE %(search_term)s
 			ORDER BY
 				mr.creation DESC
 			LIMIT 30
 			""",
-			{"status": status, "search_term": f"%{search_term}%"},
+			{"search_term": f"%{search_term}%"},
 			as_dict=True,
 		)
 
 	return frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			mr.name,
 			mr.transaction_date,
 			mr.schedule_date,
 			mr.status,
+			mr.transfer_status,
 			mr.set_warehouse,
 			(SELECT SUM(qty) FROM `tabMaterial Request Item` WHERE parent = mr.name) as total_qty
 		FROM
@@ -304,11 +357,10 @@ def get_past_request_list(search_term="", status="Pending"):
 		WHERE
 			mr.material_request_type = 'Material Transfer'
 			AND mr.docstatus = 1
-			AND mr.status = %(status)s
+			AND {transfer_status_condition}
 		ORDER BY
 			mr.creation DESC
 		LIMIT 30
 		""",
-		{"status": status},
 		as_dict=True,
 	)
